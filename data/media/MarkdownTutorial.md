@@ -1,4 +1,4 @@
-#A h1 header
+# An h1 header
 
 Paragraphs are separated by a blank line.
 
@@ -30,7 +30,7 @@ Here is a numbered list:
 
 ## A h2 header
 
-To write code, you indent it by 4 spaces or a tab. Remarkable will guess what language you are writing
+To write code, you indent it by 4 spaces or a tab. reRemarkable will guess what language you are writing
 
 	def main():
 		print "Hello World"
@@ -52,21 +52,17 @@ You can specifiy which programming language you are using with delimited blocks 
 #include <stdio.h>
 int main()
 {
-   printf("Remarkable markdown editor");
+   printf("reRemarkable markdown editor");
    return 0;
 }
 ~~~
 
 ### A h3 header ###
 
-Here is a link to the Remarkable website
- [Remarkable](http://remarkableapp.github.io)
-
-
-Remarkable will also auto-detect links, e.g: google.com
+reRemarkable will also auto-detect links, e.g: google.com
 
 Here is how to specify an image
-![Alt text](https://remarkableapp.github.io/images/remarkable.png)
+![Alt text](https://avatars.githubusercontent.com/u/1482547?s=480&v=4)
 
 
 A horizontal rule is as follows:
@@ -94,16 +90,24 @@ Here's a "line block":
 
 ---
 
-### Notes about Remarkable
+# Notes about reRemarkable
 
-With Remarkable you export your files to HTML or PDF through the `File` menu. You can also copy the converted Markdown to HTML to the clipboard through the `Edit` menu (Copy to HTML; Copy Selection to HTML).
+With reRemarkable you export your files to HTML or PDF
+through the `File` menu. You can also copy the converted
+Markdown to HTML to the clipboard through the `Edit` menu
+(Copy to HTML; Copy Selection to HTML).
 
-You can swap the position of the editor and live preview pane, switch you a horizontal layout and even hide the live preview pane completely. (See `View` menu).
+You can swap the position of the editor and live preview
+pane, switch you a horizontal layout and even hide the live
+preview pane completely. (See `View` menu).
 
-You can preview how the document will be rendered in your default browser by clicking `View->Preview Externally`.
+You can preview how the document will be rendered in your
+default browser by clicking `View->Preview Externally`.
 
-You can switch to a "Night Mode" by clicking `View->Night Mode`. Note that only some Gtk themes support this, it depends on which theme you are currently using.
+You can switch to a "Night Mode" by clicking
+`View->Night Mode`. Note that only some Gtk themes support
+this, it depends on which theme you are currently using.
 
-You can click on links in the live preview pane to verify them. To return to the markdown document just edit the file (e.g. make a space and then delete it).
-
-Check out the [Remarkable Website Here](http://remarkableapp.github.io) and the [GithHub repository](http://github.com/jamiemcg/remarkable).
+You can click on links in the live preview pane to verify
+them. To return to the markdown document just edit the file
+(e.g. make a space and then delete it).
