@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist gettext-domain="remarkable">
-  <schema id="net.launchpad.remarkable" path="/net/launchpad/remarkable/">
+<schemalist gettext-domain="reremarkable">
+  <schema id="net.launchpad.reremarkable" path="/net/launchpad/reremarkable/">
     <key name="example" type="s">
       <default>''</default>
       <summary>Sample setting</summary>

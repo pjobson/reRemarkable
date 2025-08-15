@@ -34,7 +34,5 @@ Thumbs.db
 *~
 
 # Debian packaging
-debian/files
-debian/remarkable.debhelper.log
-debian/remarkable.substvars
-debian/tmp/
+debian/
+

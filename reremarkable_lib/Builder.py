@@ -29,7 +29,7 @@ from gi.repository import GObject, Gtk # pylint: disable=E0611
 import inspect
 import functools
 import logging
-logger = logging.getLogger('remarkable_lib')
+logger = logging.getLogger('reremarkable_lib')
 
 from xml.etree.cElementTree import ElementTree
 

@@ -24,7 +24,7 @@
 
 from gi.repository import Gio, Gtk # pylint: disable=E0611
 import logging
-logger = logging.getLogger('remarkable_lib')
+logger = logging.getLogger('reremarkable_lib')
 
 from . helpers import get_builder, show_uri, get_help_uri
 
@@ -50,7 +50,7 @@ class Window(Gtk.Window):
         Returns a fully instantiated BaseRemarkableWindow object.
         """
         builder = get_builder('RemarkableWindow')
-        new_object = builder.get_object("remarkable_window")
+        new_object = builder.get_object("reremarkable_window")
         new_object.finish_initializing(builder)
         return new_object
 
@@ -73,7 +73,7 @@ class Window(Gtk.Window):
         #  http://owaislone.org/quickly-add-indicator/
         #  https://wiki.ubuntu.com/DesktopExperienceTeam/ApplicationIndicators
         try:
-            from remarkable import indicator
+            from reremarkable import indicator
             # self is passed so methods of this class can be called from indicator.py
             # Comment this next line out to disable appindicator
             self.indicator = indicator.new_application_indicator(self)
@@ -84,14 +84,14 @@ class Window(Gtk.Window):
         show_uri(self, "ghelp:%s" % get_help_uri())
 
     def on_mnu_about_activate(self, widget, data=None):
-        """Display the about box for remarkable."""
+        """Display the about box for reremarkable."""
         if self.AboutDialog is not None:
             about = self.AboutDialog() # pylint: disable=E1102
             response = about.run()
             about.destroy()
 
     def on_mnu_preferences_activate(self, widget, data=None):
-        """Display the preferences window for remarkable."""
+        """Display the preferences window for reremarkable."""
 
         """ From the PyGTK Reference manual
            Say for example the preferences dialog is currently open,
