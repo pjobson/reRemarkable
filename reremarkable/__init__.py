@@ -27,9 +27,9 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk # pylint: disable=E0611
 
-from remarkable import RemarkableWindow
+from reremarkable import RemarkableWindow
 
-from remarkable_lib import set_up_logging, get_version
+from reremarkable_lib import set_up_logging, get_version
 
 def parse_options():
     """Support for command line options"""

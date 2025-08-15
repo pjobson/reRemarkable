@@ -1,8 +1,13 @@
 #!/bin/bash
 
-mkdir -p ~/.config/remarkable
+reRemarkable=`dirname $(readlink -f $0)`
+
+PIP="$reRemarkable/venv/bin/pip"
+
+mkdir -p ~/.config/reremarkable
 python3 -m venv venv
+$PIP install -r requirements.txt
 sudo mkdir -p /opt
-sudo cp ../Remarkable /opt/
-cp remarkable.desktop ~/.local/share/applications
+sudo cp -r $reRemarkable /opt/
+cp reremarkable.desktop ~/.local/share/applications
 

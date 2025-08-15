@@ -4,7 +4,7 @@
   <!-- interface-requires preferences_remarkable_dialog 1.0 -->
   <object class="PreferencesRemarkableDialog" id="preferences_remarkable_dialog">
     <property name="can_focus">False</property>
-    <property name="title" translatable="yes">Remarkable Preferences</property>
+    <property name="title" translatable="yes">reRemarkable Preferences</property>
     <property name="icon">../media/remarkable.svg</property>
     <property name="type_hint">normal</property>
     <child internal-child="vbox">
