@@ -1,11 +1,30 @@
 # reRemarkable
 
+## Install / Uninstall
+
+This will automatically copy the repo to your `/opt` directory and add a menu item.
+
+I'm sure there's a better way to do this, feel free to make a PR if you want to improve this process.
+
+```bash
+# Installation
+git clone git@github.com:pjobson/reRemarkable.git
+./install.sh
+
+# Uninstall
+/opt/reRemarkable/uninstall.sh
+```
+
+## About
+
 **reRemarkable** is a fork of the unfortunately abandoned
 [Remarkable](https://github.com/jamiemcg/Remarkable) project.
 
 reRemarkable is a fully featured markdown editor for Linux
 
 You can download the latest version from the [project site](https://github.com/pjobson/reRemarkable).
+
+![Screen Shot](https://raw.githubusercontent.com/pjobson/reRemarkable/refs/heads/master/data/media/screenshot1.png)
 
 ## Features
 
@@ -23,34 +42,43 @@ reRemarkable has many features including:
 
 ## Keyboard Shortcuts
 
-| Action                 | Key          |
-| --                     | --           |
-| Bold                   | Ctrl+B       |
-| Copy                   | Ctrl+C       |
-| Cut                    | Ctrl+X       |
-| Export HTML            | Ctrl+Shift+E |
-| Export PDF             | Ctrl+E       |
-| Find                   | Ctrl+F       |
-| Fullscreen             | F11          |
-| Heading 1              | Ctrl+1       |
-| Heading 2              | Ctrl+2       |
-| Heading 3              | Ctrl+3       |
-| Heading 4              | Ctrl+4       |
-| Highlight              | Ctrl+Shift+H |
-| Insert Horizontal Rule | Ctrl+H       |
-| Insert Image           | Ctrl+Shift+I |
-| Insert Link            | Ctrl+L       |
-| Insert Table           | Ctrl+Shift+T |
-| Insert Timestamp       | Ctrl+T       |
-| Italic                 | Ctrl+I       |
-| New File               | Ctrl+N       |
-| Open File              | Ctrl+O       |
-| Paste                  | Ctrl+V       |
-| Quit                   | Ctrl+Q       |
-| Redo                   | Ctrl+Shift+Z |
-| Save File              | Ctrl+S       |
-| Save File As           | Ctrl+Shift+S |
-| Strikethrough          | Ctrl+D       |
-| Undo                   | Ctrl+Z       |
-| Zoom In                | Ctrl+Plus    |
-| Zoom Out               | Ctrl+Minus   |
+| Action                 | Key            |
+| --                     | --             |
+| Bold                   | `CTRL+B`       |
+| Copy                   | `CTRL+C`       |
+| Cut                    | `CTRL+X`       |
+| Export HTML            | `CTRL+SHFT+E`  |
+| Export PDF             | `CTRL+E`       |
+| Find                   | `CTRL+F`       |
+| Fullscreen             | `F11`          |
+| Heading 1              | `CTRL+1`       |
+| Heading 2              | `CTRL+2`       |
+| Heading 3              | `CTRL+3`       |
+| Heading 4              | `CTRL+4`       |
+| Highlight              | `CTRL+SHFT+H`  |
+| Insert Horizontal Rule | `CTRL+H`       |
+| Insert Image           | `CTRL+SHFT+I`  |
+| Insert Link            | `CTRL+L`       |
+| Insert Table           | `CTRL+SHFT+T`  |
+| Insert Timestamp       | `CTRL+T`       |
+| Italic                 | `CTRL+I`       |
+| New File               | `CTRL+N`       |
+| Open File              | `CTRL+O`       |
+| Paste                  | `CTRL+V`       |
+| Quit                   | `CTRL+Q`       |
+| Redo                   | `CTRL+SHFT+Z`  |
+| Save File              | `CTRL+S`       |
+| Save File As           | `CTRL+SHFT+S`  |
+| Strikethrough          | `CTRL+D`       |
+| Undo                   | `CTRL+Z`       |
+| Zoom In                | `CTRL+Plus`    |
+| Zoom Out               | `CTRL+Minus`   |
+| Open Recent File 1     | `CTRL+ALT+1`   |
+| Open Recent File 2     | `CTRL+ALT+2`   |
+| Open Recent File 3     | `CTRL+ALT+3`   |
+| Open Recent File 4     | `CTRL+ALT+4`   |
+| Open Recent File 5     | `CTRL+ALT+5`   |
+| Open Recent File 6     | `CTRL+ALT+6`   |
+| Open Recent File 7     | `CTRL+ALT+7`   |
+| Open Recent File 8     | `CTRL+ALT+8`   |
+| Open Recent File 9     | `CTRL+ALT+9`   |
