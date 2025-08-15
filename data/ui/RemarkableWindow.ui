@@ -80,7 +80,7 @@
   </object>
   <object class="RemarkableWindow" id="remarkable_window">
     <property name="can_focus">False</property>
-    <property name="title" translatable="yes">Remarkable</property>
+    <property name="title" translatable="yes">reRemarkable</property>
     <property name="window_position">center</property>
     <property name="default_width">1024</property>
     <property name="default_height">640</property>

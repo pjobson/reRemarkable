@@ -2,6 +2,12 @@
 
 This project now uses a Python virtual environment.
 
+## Setup venv
+
+```bash
+python3 -m venv venv
+```
+
 ## Activation
 
 To activate the virtual environment:
