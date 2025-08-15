@@ -1750,10 +1750,10 @@ class RemarkableWindow(Window):
                 menu_item.show()
                 self.recent_files_menu.append(menu_item)
                 
-                # Add accelerator for first 9 files (Ctrl+1-9)
+                # Add accelerator for first 9 files (Ctrl+Alt+1-9)
                 if i < 9:
                     menu_item.add_accelerator("activate", self.accel_group, 
-                                            ord('1') + i, Gdk.ModifierType.CONTROL_MASK, 
+                                            ord('1') + i, Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.MOD1_MASK,
                                             Gtk.AccelFlags.VISIBLE)
             
             # Add separator and clear option
