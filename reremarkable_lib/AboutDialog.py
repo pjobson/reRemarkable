@@ -36,7 +36,7 @@ class AboutDialog(Gtk.AboutDialog):
         Returns a fully instantiated AboutDialog object.
         """
         builder = get_builder('AboutReRemarkableDialog')
-        new_object = builder.get_object("about_remarkable_dialog")
+        new_object = builder.get_object("about_reremarkable_dialog")
         new_object.finish_initializing(builder)
         return new_object
 

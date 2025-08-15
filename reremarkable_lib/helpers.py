@@ -26,7 +26,7 @@
 import logging
 import os
 
-from . remarkableconfig import get_data_file
+from . reremarkableconfig import get_data_file
 from . Builder import Builder
 
 from locale import gettext as _
@@ -44,7 +44,7 @@ def get_builder(builder_file_name):
         ui_filename = None
 
     builder = Builder()
-    builder.set_translation_domain('remarkable')
+    builder.set_translation_domain('reremarkable')
     builder.add_from_file(ui_filename)
     return builder
 
@@ -69,12 +69,12 @@ def set_up_logging(opts):
 
     formatter = logging.Formatter("%(levelname)s:%(name)s: %(funcName)s() '%(message)s'")
 
-    logger = logging.getLogger('remarkable')
+    logger = logging.getLogger('reremarkable')
     logger_sh = logging.StreamHandler()
     logger_sh.setFormatter(formatter)
     logger.addHandler(logger_sh)
 
-    lib_logger = logging.getLogger('remarkable_lib')
+    lib_logger = logging.getLogger('reremarkable_lib')
     lib_logger_sh = logging.StreamHandler()
     lib_logger_sh.setFormatter(formatter)
     lib_logger.addHandler(lib_logger_sh)
@@ -100,7 +100,7 @@ def get_help_uri(page=None):
 
     if not os.path.exists(help_uri):
         # installed so use gnome help tree - user's language
-        help_uri = 'remarkable'
+        help_uri = 'reremarkable'
 
     # unspecified page is the index.page
     if page is not None:

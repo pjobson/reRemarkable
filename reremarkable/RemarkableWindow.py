@@ -43,15 +43,15 @@ from findBar import FindBar
 
 
 import logging
-logger = logging.getLogger('remarkable')
+logger = logging.getLogger('reremarkable')
 
 # Ignore warnings re. scroll handler (temp. fix) && starting GTK warning
 warnings.filterwarnings("ignore", ".*has no handler with id.*")
 
-from reremarkable_lib import Window, remarkableconfig
+from reremarkable_lib import Window, reremarkableconfig
 from AboutReRemarkableDialog import AboutReRemarkableDialog
 
-app_version = 1.9 # Remarkable app version
+app_version = 1.9 # reRemarkable app version
 
 class RemarkableWindow(Window):
     __gtype_name__ = "RemarkableWindow"
@@ -68,16 +68,16 @@ class RemarkableWindow(Window):
         self.zoom_steps = 0.1
         self.editor_position = 0
         self.homeDir = os.environ['HOME']
-        self.path = os.path.join(self.homeDir, ".remarkable/")
-        self.settings_path = os.path.join(self.path, "remarkable.settings")
-        self.media_path = remarkableconfig.get_data_path() + os.path.sep + "media" + os.path.sep
+        self.path = os.path.join(self.homeDir, ".reremarkable/")
+        self.settings_path = os.path.join(self.path, "reremarkable.settings")
+        self.media_path = reremarkableconfig.get_data_path() + os.path.sep + "media" + os.path.sep
         self.name = "Untitled" # Title of the current file, set to 'Untitled' as default
 
-        self.default_html_start = '<!doctype HTML><html><head><meta charset="utf-8"><title>Made with Remarkable!</title><link rel="stylesheet" href="' + self.media_path + 'highlightjs.default.min.css">'
+        self.default_html_start = '<!doctype HTML><html><head><meta charset="utf-8"><title>Made with reRemarkable!</title><link rel="stylesheet" href="' + self.media_path + 'highlightjs.default.min.css">'
         self.default_html_start += "<style type='text/css'>" + styles.get() + "</style>"
         self.default_html_start += "</head><body id='MathPreviewF'>"
         self.default_html_end = '<script src="' + self.media_path + 'highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/javascript">MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});</script></body></html>'
-        self.remarkable_settings = {}
+        self.reremarkable_settings = {}
 
         self.default_extensions = ['markdown.extensions.extra','markdown.extensions.toc', 'markdown.extensions.smarty', 'markdown_extensions.extensions.urlize', 'markdown_extensions.extensions.Highlighting', 'markdown_extensions.extensions.Strikethrough', 'markdown_extensions.extensions.markdown_checklist', 'markdown_extensions.extensions.superscript', 'markdown_extensions.extensions.subscript', 'markdown_extensions.extensions.mathjax']
         self.safe_extensions = ['markdown.extensions.extra']
@@ -89,7 +89,7 @@ class RemarkableWindow(Window):
         self.recent_files_file = os.path.expanduser("~/.config/reremarkable/recent_files.txt")
         self.load_recent_files()
 
-        self.window = self.builder.get_object("remarkable_window")
+        self.window = self.builder.get_object("reremarkable_window")
         self.window.connect("delete-event", self.window_delete_event)
         self.window.connect("destroy", self.quit_requested)
 
@@ -154,7 +154,7 @@ class RemarkableWindow(Window):
         if len(sys.argv) > 1:
             self.name = sys.argv[1]
             title = self.name.split("/")[-1]
-            self.window.set_title("Remarkable: " + title)
+            self.window.set_title("reRemarkable: " + title)
             try:
                 with open(sys.argv[1], 'r') as temp:
                     text = temp.read()
@@ -228,25 +228,25 @@ class RemarkableWindow(Window):
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         if not os.path.isfile(self.settings_path):
-            self.remarkable_settings = {}
-            self.remarkable_settings['css'] = '' 
-            self.remarkable_settings['font'] = "Sans 10"  
-            self.remarkable_settings['line-numbers'] = True
-            self.remarkable_settings['live-preview'] = True
-            self.remarkable_settings['nightmode'] = False       
-            self.remarkable_settings['statusbar'] = True
-            self.remarkable_settings['style'] = "github"
-            self.remarkable_settings['toolbar'] = True
-            self.remarkable_settings['vertical'] = False
-            self.remarkable_settings['word-wrap'] = True
-            self.remarkable_settings['zoom-level'] = 1
-            self.remarkable_settings['rtl'] = False
+            self.reremarkable_settings = {}
+            self.reremarkable_settings['css'] = '' 
+            self.reremarkable_settings['font'] = "Sans 10"  
+            self.reremarkable_settings['line-numbers'] = True
+            self.reremarkable_settings['live-preview'] = True
+            self.reremarkable_settings['nightmode'] = False       
+            self.reremarkable_settings['statusbar'] = True
+            self.reremarkable_settings['style'] = "github"
+            self.reremarkable_settings['toolbar'] = True
+            self.reremarkable_settings['vertical'] = False
+            self.reremarkable_settings['word-wrap'] = True
+            self.reremarkable_settings['zoom-level'] = 1
+            self.reremarkable_settings['rtl'] = False
             settings_file = open(self.settings_path, 'w')
-            settings_file.write(str(self.remarkable_settings))
+            settings_file.write(str(self.reremarkable_settings))
             settings_file.close()
         else:
             settings_file = open(self.settings_path)
-            self.remarkable_settings = eval(settings_file.read())
+            self.reremarkable_settings = eval(settings_file.read())
             settings_file.close()
             self.load_settings()
 
@@ -254,65 +254,65 @@ class RemarkableWindow(Window):
 
     def write_settings(self):
         settings_file = open(self.settings_path, 'w')
-        settings_file.write(str(self.remarkable_settings))
+        settings_file.write(str(self.reremarkable_settings))
         settings_file.close()
 
     def load_settings(self):
-        self.custom_css = self.remarkable_settings['css'] # Load the custom css (don't auto enable)
+        self.custom_css = self.reremarkable_settings['css'] # Load the custom css (don't auto enable)
 
-        if self.remarkable_settings['nightmode']:
+        if self.reremarkable_settings['nightmode']:
             # Enable night/dark mode on startup
             self.builder.get_object("menuitem_night_mode").set_active(True)
             self.on_menuitem_night_mode_activate(self)
 
-        if self.remarkable_settings['word-wrap'] == False:
+        if self.reremarkable_settings['word-wrap'] == False:
             # Disable word wrap on startup
             self.builder.get_object("menuitem_word_wrap").set_active(False)
             self.on_menuitem_word_wrap_activate(self)
 
-        if self.remarkable_settings['live-preview'] == False:
+        if self.reremarkable_settings['live-preview'] == False:
             # Disable Live Preview on startup
             self.builder.get_object("menuitem_live_preview").set_active(False)
 
-        if self.remarkable_settings['toolbar'] == False:
+        if self.reremarkable_settings['toolbar'] == False:
             # Hide the toolbar on startup
             self.on_menuitem_toolbar_activate(self)
 
-        if self.remarkable_settings['statusbar'] == False:
+        if self.reremarkable_settings['statusbar'] == False:
             # Hide the statusbar on startup
             self.on_menuitem_statusbar_activate(self)
         
         # New settings, create them with default if they don't exist
-        if "line-numbers" not in self.remarkable_settings:
-            self.remarkable_settings['line-numbers'] = True
+        if "line-numbers" not in self.reremarkable_settings:
+            self.reremarkable_settings['line-numbers'] = True
                 
-        if self.remarkable_settings['line-numbers'] == False:
+        if self.reremarkable_settings['line-numbers'] == False:
             # Hide line numbers on startup
             self.builder.get_object("menuitem_line_numbers").set_active(False)
 
-        if "vertical" not in self.remarkable_settings:
-            self.remarkable_settings['vertical'] = False
+        if "vertical" not in self.reremarkable_settings:
+            self.reremarkable_settings['vertical'] = False
             
-        if self.remarkable_settings['vertical'] == True:
+        if self.reremarkable_settings['vertical'] == True:
             # Switch to vertical layout
             self.builder.get_object("menuitem_vertical_layout").set_active(True)
 
-        if 'zoom-level' in self.remarkable_settings:
-            self.live_preview.set_zoom_level(self.remarkable_settings['zoom-level'])
+        if 'zoom-level' in self.reremarkable_settings:
+            self.live_preview.set_zoom_level(self.reremarkable_settings['zoom-level'])
 
-        if 'rtl' in self.remarkable_settings and self.remarkable_settings['rtl']:
+        if 'rtl' in self.reremarkable_settings and self.reremarkable_settings['rtl']:
             self.builder.get_object("menuitem_rtl").set_active(True)
 
         # Try to load the previously chosen font, may fail as font may not exist, ect.
         try:
-            self.font = self.remarkable_settings['font']
+            self.font = self.reremarkable_settings['font']
             self.text_view.override_font(Pango.FontDescription(self.font))
         except:
             pass # Loading font failed --> leave at default font
             
         # Try to load the previously chosen style. May fail if so, ignore
         try:
-            self.style = self.remarkable_settings['style']
+            self.style = self.reremarkable_settings['style']
             if self.style == "dark":
                 styles.set(styles.dark)
             elif self.style == "foghorn":
@@ -388,7 +388,7 @@ class RemarkableWindow(Window):
         self.new(self)
 
     """
-        Launches a new instance of Remarkable
+        Launches a new instance of reRemarkable
     """
     def new(self, widget):
         subprocess.Popen(sys.argv[0])
@@ -439,7 +439,7 @@ class RemarkableWindow(Window):
             self.name = file_path
             self.text_buffer.set_text(text)
             title = file_path.split("/")[-1]
-            self.window.set_title("Remarkable: " + title)
+            self.window.set_title("reRemarkable: " + title)
             self.text_buffer.set_modified(False)
             self.text_buffer.end_not_undoable_action()
             # Add to recent files when loading
@@ -480,7 +480,7 @@ class RemarkableWindow(Window):
             file.close()
             title = self.name.split("/")[-1]
             self.text_buffer.set_modified(False)
-            self.window.set_title("Remarkable: " + title)
+            self.window.set_title("reRemarkable: " + title)
             # Add to recent files when saving
             self.add_recent_file(self.name)
             return True
@@ -510,7 +510,7 @@ class RemarkableWindow(Window):
             file.close()
             self.text_buffer.set_modified(False)
             title = self.name.split("/")[-1]
-            self.window.set_title("Remarkable: " + title)
+            self.window.set_title("reRemarkable: " + title)
             # Add to recent files when saving as
             self.add_recent_file(self.name)
         else:
@@ -521,7 +521,7 @@ class RemarkableWindow(Window):
 
     def on_menuitem_rtl_toggled(self, widget):
         self.rtl(widget.get_active())
-        self.remarkable_settings['rtl'] = widget.get_active()
+        self.reremarkable_settings['rtl'] = widget.get_active()
         self.write_settings()
 
     def rtl(self, enabled):
@@ -654,7 +654,7 @@ class RemarkableWindow(Window):
                     # Pdf Export failed, show warning message
                     if not self.pdf_error_warning:
                         self.pdf_error_warning = True
-                        print("\nRemarkable Error:\tPDF Export Failed!!")
+                        print("\nreRemarkable Error:\tPDF Export Failed!!")
 
                     pdf_fail_dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.ERROR,
                             Gtk.ButtonsType.CANCEL, "PDF EXPORT FAILED")
@@ -710,13 +710,13 @@ class RemarkableWindow(Window):
 
     def zoom_in(self):
         self.live_preview.set_zoom_level((1+self.zoom_steps)*self.live_preview.get_zoom_level())
-        self.remarkable_settings['zoom-level'] = self.live_preview.get_zoom_level()
+        self.reremarkable_settings['zoom-level'] = self.live_preview.get_zoom_level()
         self.write_settings()
         self.scrollPreviewToFix(self)
 
     def zoom_out(self):
         self.live_preview.set_zoom_level((1-self.zoom_steps)*self.live_preview.get_zoom_level())
-        self.remarkable_settings['zoom-level'] = self.live_preview.get_zoom_level()
+        self.reremarkable_settings['zoom-level'] = self.live_preview.get_zoom_level()
         self.write_settings()
         self.scrollPreviewToFix(self)
 
@@ -864,30 +864,30 @@ class RemarkableWindow(Window):
             self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
             self.paned.set_orientation(Gtk.Orientation.VERTICAL)
             self.paned.set_position(self.paned.get_allocation().height/2) 
-            self.remarkable_settings['vertical'] = True
+            self.reremarkable_settings['vertical'] = True
         else:   
             self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
             self.paned.set_position(self.paned.get_allocation().width/2)
-            self.remarkable_settings['vertical'] = False
+            self.reremarkable_settings['vertical'] = False
         self.write_settings()
 
     def on_menuitem_word_wrap_activate(self, widget):
         if self.builder.get_object("menuitem_word_wrap").get_active():
             self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
-            self.remarkable_settings['word-wrap'] = True
+            self.reremarkable_settings['word-wrap'] = True
         else:
             self.text_view.set_wrap_mode(Gtk.WrapMode.NONE)
-            self.remarkable_settings['word-wrap'] = False   
+            self.reremarkable_settings['word-wrap'] = False   
         self.write_settings()
 
 
     def on_menuitem_line_numbers_activate(self, widget):
         if self.builder.get_object("menuitem_line_numbers").get_active():
             self.text_view.set_show_line_numbers(True)
-            self.remarkable_settings['line-numbers'] = True
+            self.reremarkable_settings['line-numbers'] = True
         else:
             self.text_view.set_show_line_numbers(False)
-            self.remarkable_settings['line-numbers'] = False
+            self.reremarkable_settings['line-numbers'] = False
         self.write_settings()
             
     def on_menuitem_live_preview_activate(self, widget):
@@ -901,7 +901,7 @@ class RemarkableWindow(Window):
                 self.builder.get_object("menuitem_swap").set_sensitive(False)
                 self.builder.get_object("menuitem_swap").set_tooltip_text("Enable Live Preview First")
                 self.builder.get_object("toolbar1").set_visible(False)
-                self.remarkable_settings['live-preview'] = False
+                self.reremarkable_settings['live-preview'] = False
         else:  # Show the live preview
             if self.editor_position == 0:
                 self.paned.add(self.scrolledwindow_live_preview)
@@ -910,7 +910,7 @@ class RemarkableWindow(Window):
                 self.paned.add(self.scrolledwindow_live_preview)
                 self.paned.add(self.scrolledwindow_text_view)
             self.live_preview.set_visible(True)
-            self.remarkable_settings['live-preview'] = True
+            self.reremarkable_settings['live-preview'] = True
             self.builder.get_object("menuitem_swap").set_sensitive(True)
             self.builder.get_object("menuitem_swap").set_tooltip_text("")
             self.builder.get_object("toolbar1").set_visible(True)
@@ -941,7 +941,7 @@ class RemarkableWindow(Window):
 
     def on_menuitem_editor_font_activate(self, widget):
         self.font_chooser = Gtk.FontSelectionDialog()
-        self.font_chooser.set_preview_text("Remarkable is the best markdown editor for Linux")
+        self.font_chooser.set_preview_text("reRemarkable is the best markdown editor for Linux")
         try:
             self.font_chooser.set_font_name(self.font)
         except:
@@ -961,7 +961,7 @@ class RemarkableWindow(Window):
 
     def font_dialog_ok(self, widget):
         self.font = self.font_chooser.get_font_name()
-        self.remarkable_settings['font'] = self.font # Save prefs
+        self.reremarkable_settings['font'] = self.font # Save prefs
         self.write_settings()    
         self.text_view.override_font(Pango.FontDescription(self.font))
 
@@ -972,12 +972,12 @@ class RemarkableWindow(Window):
         if self.statusbar.get_visible():
             self.statusbar.set_visible(False)
             self.builder.get_object("menuitem_statusbar").set_label("Show Statusbar")
-            self.remarkable_settings['statusbar'] = False
+            self.reremarkable_settings['statusbar'] = False
         else:
             self.statusbar.set_visible(True)
             self.update_status_bar(self)
             self.builder.get_object("menuitem_statusbar").set_label("Hide Statusbar")
-            self.remarkable_settings['statusbar'] = True
+            self.reremarkable_settings['statusbar'] = True
         self.write_settings()
 
     def on_menuitem_toolbar_activate(self, widget):
@@ -985,12 +985,12 @@ class RemarkableWindow(Window):
             self.toolbar.set_visible(False)
             self.builder.get_object("menuitem_toolbar").set_label("Show Toolbar")
             self.builder.get_object("toolbar1").set_visible(False)
-            self.remarkable_settings['toolbar'] = False
+            self.reremarkable_settings['toolbar'] = False
         else:
             self.toolbar.set_visible(True)
             self.builder.get_object("menuitem_toolbar").set_label("Hide Toolbar")
             self.builder.get_object("toolbar1").set_visible(True)
-            self.remarkable_settings['toolbar'] = True
+            self.reremarkable_settings['toolbar'] = True
         self.write_settings()
 
     def on_menuitem_preview_browser_activate(self, widget):
@@ -1019,10 +1019,10 @@ class RemarkableWindow(Window):
     def on_menuitem_night_mode_activate(self, widget):
         if self.builder.get_object("menuitem_night_mode").get_active():
             self.settings.set_property("gtk-application-prefer-dark-theme", True)
-            self.remarkable_settings['nightmode'] = True
+            self.reremarkable_settings['nightmode'] = True
         else:
             self.settings.set_property("gtk-application-prefer-dark-theme", False)
-            self.remarkable_settings['nightmode'] = False
+            self.reremarkable_settings['nightmode'] = False
         self.write_settings()
 
     def on_menuitem_fullscreen_activate(self, widget):
@@ -1405,7 +1405,7 @@ class RemarkableWindow(Window):
 
     # Styles
     def update_style(self, widget):
-        self.default_html_start = '<!doctype HTML><html><head><meta charset="utf-8"><title>Made with Remarkable!</title><link rel="stylesheet" href="' + self.media_path + 'highlightjs.default.min.css">'
+        self.default_html_start = '<!doctype HTML><html><head><meta charset="utf-8"><title>Made with reRemarkable!</title><link rel="stylesheet" href="' + self.media_path + 'highlightjs.default.min.css">'
         self.default_html_start += "<style type='text/css'>" + styles.get() + "</style>"
         self.default_html_start += "</head><body>"
 
@@ -1413,49 +1413,49 @@ class RemarkableWindow(Window):
         styles.set(styles.dark)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "dark"
+        self.reremarkable_settings['style'] = "dark"
         self.write_settings()
 
     def on_menuitem_foghorn_activate(self, widget):
         styles.set(styles.foghorn)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "foghorn"
+        self.reremarkable_settings['style'] = "foghorn"
         self.write_settings()
 
     def on_menuitem_github_activate(self, widget):
         styles.set(styles.github)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "github"
+        self.reremarkable_settings['style'] = "github"
         self.write_settings()
 
     def on_menuitem_handwritten_activate(self, widget):
         styles.set(styles.handwriting_css)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "handwriting_css"
+        self.reremarkable_settings['style'] = "handwriting_css"
         self.write_settings()
 
     def on_menuitem_markdown_activate(self, widget):
         styles.set(styles.markdown)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "markdown"
+        self.reremarkable_settings['style'] = "markdown"
         self.write_settings()
 
     def on_menuitem_metro_vibes_activate(self, widget):
         styles.set(styles.metro_vibes)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "metro_vibes"
+        self.reremarkable_settings['style'] = "metro_vibes"
         self.write_settings()
 
     def on_menuitem_metro_vibes_dark_activate(self, widget):
         styles.set(styles.metro_vibes_dark)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "metro_vibes_dark"
+        self.reremarkable_settings['style'] = "metro_vibes_dark"
         self.write_settings()
 
 
@@ -1463,28 +1463,28 @@ class RemarkableWindow(Window):
         styles.set(styles.modern_css)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "modern_css"
+        self.reremarkable_settings['style'] = "modern_css"
         self.write_settings()
 
     def on_menuitem_screen_activate(self, widget):
         styles.set(styles.screen)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "screen"
+        self.reremarkable_settings['style'] = "screen"
         self.write_settings()
     
     def on_menuitem_solarized_dark_activate(self, widget):
         styles.set(styles.solarized_dark)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "solarized_dark"
+        self.reremarkable_settings['style'] = "solarized_dark"
         self.write_settings()
 
     def on_menuitem_solarized_light_activate(self, widget):
         styles.set(styles.solarized_light)
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "solarized_light"
+        self.reremarkable_settings['style'] = "solarized_light"
         self.write_settings()
 
     # Custom CSS
@@ -1512,11 +1512,11 @@ class RemarkableWindow(Window):
         start, end = tb.get_bounds()
         self.custom_css = tb.get_text(start, end, False).replace("'", '"')
         styles.set(self.custom_css)
-        self.remarkable_settings['css'] = styles.get()
+        self.reremarkable_settings['css'] = styles.get()
         window.hide()
         self.update_style(self)
         self.update_live_preview(self)
-        self.remarkable_settings['style'] = "custom"
+        self.reremarkable_settings['style'] = "custom"
         self.write_settings()
     ## End Custom CSS
 
@@ -1577,7 +1577,7 @@ class RemarkableWindow(Window):
     def cursor_ctrl_arrow_rtl_fix(self, widget, event):
         if event.keyval in [Gdk.KEY_Left, Gdk.KEY_Right]:
             if event.state & Gdk.ModifierType.CONTROL_MASK:
-                is_rtl = self.remarkable_settings['rtl']
+                is_rtl = self.reremarkable_settings['rtl']
 
                 dirs = {
                     Gdk.KEY_Left: is_rtl and 1 or -1,

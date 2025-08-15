@@ -23,11 +23,11 @@
 from locale import gettext as _
 
 import logging
-logger = logging.getLogger('remarkable')
+logger = logging.getLogger('reremarkable')
 
 from reremarkable_lib.AboutDialog import AboutDialog
 
-# See remarkable_lib.AboutDialog.py for more details about how this class works.
+# See reremarkable_lib.AboutDialog.py for more details about how this class works.
 class AboutReRemarkableDialog(AboutDialog):
     __gtype_name__ = "AboutReRemarkableDialog"
     

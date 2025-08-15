@@ -3,6 +3,6 @@ Name=reRemarkable
 Comment=A free, fully featured markdown editor for Linux.
 Categories=GNOME;Utility;
 Exec=/opt/reRemarkable/run.sh %f
-Icon=/opt/reRemarkable/data/media/remarkable.png
+Icon=/opt/reRemarkable/data/media/reremarkable.png
 Terminal=false
 Type=Application

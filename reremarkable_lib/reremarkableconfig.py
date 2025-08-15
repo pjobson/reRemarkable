@@ -30,7 +30,7 @@ __all__ = [
 
 # Where your project will look for your data
 #(for instance, images and ui files).
-__remarkable_data_directories__ = ['../data', '/usr/share/remarkable']
+__reremarkable_data_directories__ = ['../data', '/usr/share/reremarkable']
 __license__ = 'MIT'
 __version__ = '1.9'
 
@@ -53,14 +53,14 @@ def get_data_file(*path_segments):
 
 
 def get_data_path():
-    """Retrieve remarkable data path
+    """Retrieve reremarkable data path
 
-    This path is by default <remarkable_lib_path>/../data/ in trunk
-    and /usr/share/remarkable in an installed version but this path
+    This path is by default <reremarkable_lib_path>/../data/ in trunk
+    and /usr/share/reremarkable in an installed version but this path
     is specified at installation time.
     """
 
-    for data_dir in __remarkable_data_directories__:
+    for data_dir in __reremarkable_data_directories__:
         path = os.path.join(
             os.path.dirname(__file__), data_dir)
 

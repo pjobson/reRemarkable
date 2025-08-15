@@ -36,7 +36,7 @@ def parse_options():
     parser = optparse.OptionParser(version="%%prog %s" % get_version())
     parser.add_option(
         "-v", "--verbose", action="count", dest="verbose",
-        help=_("Show debug messages (-vv debugs remarkable_lib also)"))
+        help=_("Show debug messages (-vv debugs reremarkable_lib also)"))
     (options, args) = parser.parse_args()
 
     set_up_logging(options)
