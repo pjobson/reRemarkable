@@ -2,9 +2,8 @@
 
 ## Install / Uninstall
 
-This will automatically copy the repo to your `/opt` directory and add a menu item.
-
-I'm sure there's a better way to do this, feel free to make a PR if you want to improve this process.
+This will automatically copy the repo to your `/opt` directory
+and add a menu item.
 
 ```bash
 # Installation
