@@ -2,19 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased] - 2025-08-15
+## [Recent Development] - 2025-08-15
 
 ### Added
+- Emoji picker dialog with search functionality
+- Emoji picker toolbar button with icon
+- Emoji picker menu item with keyboard shortcut (Ctrl+Alt+E)
+- Comprehensive emoji categories (Smileys & People, Animals & Nature, Food & Drink, Activities, Travel & Places, Objects, Symbols)
+- Enhanced install script with colored output, error handling, and prerequisite checks
+- Enhanced uninstall script with colored output and confirmation prompts
 - Uninstall script
 - Recent files menu option
 - Screenshot
 
 ### Changed
+- Converted LICENSE to markdown format (LICENSE.md)
+- Updated copyright references
 - Updated recent file modifiers
 - Renamed project references
 - Updated menu items, install script, and run script
-- Updated README.md
+- Updated README.md with emoji picker feature
 - Corrected file paths and permissions
+- Improved install/uninstall scripts with better user experience
 
 ### Fixed
 - Fixed reference from rereremarkable to reremarkable
