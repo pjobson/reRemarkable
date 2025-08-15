@@ -1,3 +1,5 @@
 beautifulsoup4
 markdown
 pdfkit
+# pygtkspellcheck  # Requires system GTK dependencies - install separately
+
