@@ -3,7 +3,7 @@
 **reRemarkable** is a fork of the unfortunately abandoned
 [Remarkable](https://github.com/jamiemcg/Remarkable) project.
 
-## A Fully Featured Markdown Editor for Linux
+reRemarkable is a fully featured markdown editor for Linux
 
 You can download the latest version from the [project site](https://github.com/pjobson/reRemarkable).
 
