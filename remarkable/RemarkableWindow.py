@@ -41,13 +41,6 @@ import unicodedata
 import warnings
 from findBar import FindBar
 
-# Check if gtkspellcheck is installed
-try:
-    from gtkspellcheck import SpellChecker
-    spellcheck_enabled = True
-except:
-    print("*Spellchecking not enabled.\n*To enable spellchecking install pygtkspellcheck\n*https://pypi.python.org/pypi/pygtkspellcheck/")
-    spellcheck_enabled = False
 
 import logging
 logger = logging.getLogger('remarkable')
@@ -172,11 +165,6 @@ class RemarkableWindow(Window):
 
         self.text_view.grab_focus()
         
-        if spellcheck_enabled:
-            try:
-                self.spellchecker = SpellChecker(self.text_view, locale.getdefaultlocale()[0]) # Enabling spell checking
-            except:
-                pass # Spell checking not enabled
 
         self.tv_scrolled = self.scrolledwindow_text_view.get_vadjustment().connect("value-changed", self.scrollPreviewTo)
         self.lp_scrolled_fix = self.scrolledwindow_live_preview.get_vadjustment().connect("value-changed", self.scrollPreviewToFix)
