@@ -12,13 +12,12 @@
     <property name="type_hint">dialog</property>
     <property name="program_name">reRemarkable</property>
     <property name="version">1.9</property>
-    <property name="copyright" translatable="yes">Copyright (C) 2020 Jamie McGowan &lt;jamiemcgowan.dev@gmail.com&gt;</property>
-    <property name="website">http://remarkableapp.github.io</property>
-    <property name="website_label" translatable="yes">remarkableapp.github.io</property>
+    <property name="copyright" translatable="yes">Copyright (C) 2025 Paul Jobson &lt;pjobson@gmail.com&gt;</property>
+    <property name="website">https://github.com/pjobson/reRemarkable</property>
+    <property name="website_label" translatable="yes">reRemarkable</property>
     <property name="license" translatable="yes">
 reRemarkable Copyright (c) 2025 Paul Jobson
-
-Remarkable Copyright (c) 2020 Jamie McGowan
+Original Remarkable Copyright (c) 2020 Jamie McGowan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -77,7 +76,7 @@ pdfkit:
 
 This software uses a free icon set available here:
 http://www.elegantthemes.com/blog/freebie-of-the-week/beautiful-flat-icons-for-free</property>
-    <property name="authors">&lt;Jamie McGowan&gt; &lt;jamiemcgowan.dev@gmail.com&gt;</property>
+    <property name="authors">&lt;Paul Jobson&gt; &lt;pjobson@gmail.com&gt;</property>
     <property name="logo">../media/remarkable.svg</property>
     <property name="wrap_license">True</property>
     <property name="license_type">custom</property>
