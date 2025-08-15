@@ -21,6 +21,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Recent Development] - 2025-08-14
 
+### FORKED
+- Forked from `jamiemcg/Remarkable`
+
 ### Added
 - Virtual environment setup
 - Requirements file
