@@ -48,8 +48,8 @@ logger = logging.getLogger('remarkable')
 # Ignore warnings re. scroll handler (temp. fix) && starting GTK warning
 warnings.filterwarnings("ignore", ".*has no handler with id.*")
 
-from remarkable_lib import Window, remarkableconfig
-from remarkable.AboutRemarkableDialog import AboutRemarkableDialog
+from reremarkable_lib import Window, remarkableconfig
+from reremarkable.AboutRemarkableDialog import AboutRemarkableDialog
 
 app_version = 1.9 # Remarkable app version
 

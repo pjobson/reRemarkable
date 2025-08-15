@@ -25,7 +25,7 @@ from locale import gettext as _
 import logging
 logger = logging.getLogger('remarkable')
 
-from remarkable_lib.AboutDialog import AboutDialog
+from reremarkable_lib.AboutDialog import AboutDialog
 
 # See remarkable_lib.AboutDialog.py for more details about how this class works.
 class AboutRemarkableDialog(AboutDialog):
