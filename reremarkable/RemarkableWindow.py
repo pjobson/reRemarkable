@@ -50,6 +50,7 @@ warnings.filterwarnings("ignore", ".*has no handler with id.*")
 
 from reremarkable_lib import Window, reremarkableconfig
 from AboutReRemarkableDialog import AboutReRemarkableDialog
+from EmojiPickerDialog import EmojiPickerDialog
 
 app_version = 1.9 # reRemarkable app version
 
@@ -61,6 +62,7 @@ class RemarkableWindow(Window):
         super(RemarkableWindow, self).finish_initializing(builder)
 
         self.AboutDialog = AboutReRemarkableDialog
+        self.emoji_picker = None
 
         self.settings = Gtk.Settings.get_default()
 
@@ -1236,6 +1238,9 @@ class RemarkableWindow(Window):
     def on_toolbutton_timestamp_clicked(self, widget):
         self.insert_timestamp(self)
 
+    def on_toolbutton_emoji_clicked(self, widget):
+        self.show_emoji_picker(self)
+
     def insert_timestamp(self, widget):
         text = datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p") + " "
         self.text_buffer.insert_at_cursor(text + "\n")
@@ -1401,6 +1406,15 @@ class RemarkableWindow(Window):
         else:
             pass
         self.insert_window_link.hide()
+
+    def on_menuitem_emoji_activate(self, widget):
+        self.show_emoji_picker(self)
+
+    def show_emoji_picker(self, widget):
+        """Show the emoji picker dialog"""
+        if not self.emoji_picker:
+            self.emoji_picker = EmojiPickerDialog(self.window, self.text_buffer)
+        self.emoji_picker.show()
 
 
     # Styles
