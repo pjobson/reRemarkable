@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Remarkable
+Name=reRemarkable
 Comment=A free, fully featured markdown editor for Linux.
 Categories=GNOME;Utility;
-Exec=/opt/Remarkable/run.sh %f
-Icon=/opt/Remarkable/data/media/remarkable.png
+Exec=/opt/reRemarkable/run.sh %f
+Icon=/opt/reRemarkable/data/media/remarkable.png
 Terminal=false
 Type=Application

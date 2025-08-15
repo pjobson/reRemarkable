@@ -25,15 +25,15 @@ from locale import gettext as _
 import logging
 logger = logging.getLogger('remarkable')
 
-from remarkable_lib.AboutDialog import AboutDialog
+from reremarkable_lib.AboutDialog import AboutDialog
 
 # See remarkable_lib.AboutDialog.py for more details about how this class works.
-class AboutRemarkableDialog(AboutDialog):
-    __gtype_name__ = "AboutRemarkableDialog"
+class AboutReRemarkableDialog(AboutDialog):
+    __gtype_name__ = "AboutReRemarkableDialog"
     
     def finish_initializing(self, builder): # pylint: disable=E1002
         """Set up the about dialog"""
-        super(AboutRemarkableDialog, self).finish_initializing(builder)
+        super(AboutReRemarkableDialog, self).finish_initializing(builder)
 
         # Code for other initialization actions should be added here.
 
