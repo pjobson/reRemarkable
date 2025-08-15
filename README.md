@@ -7,11 +7,6 @@
 
 You can download the latest version from the [project site](https://github.com/pjobson/reRemarkable).
 
-<!--
-![reRemarkable](http://remarkableapp.github.io/images/main_screenshot.png)
-![reRemarkable Syntax Highlighting](http://remarkableapp.github.io/images/syntax_highlighting.png)
--->
-
 ## Features
 
 reRemarkable has many features including:

@@ -35,7 +35,7 @@ class AboutDialog(Gtk.AboutDialog):
         
         Returns a fully instantiated AboutDialog object.
         """
-        builder = get_builder('AboutRemarkableDialog')
+        builder = get_builder('AboutReRemarkableDialog')
         new_object = builder.get_object("about_remarkable_dialog")
         new_object.finish_initializing(builder)
         return new_object
@@ -45,7 +45,7 @@ class AboutDialog(Gtk.AboutDialog):
 
         finish_initalizing should be called after parsing the ui definition
         and creating a AboutDialog object with it in order
-        to finish initializing the start of the new AboutRemarkableDialog
+        to finish initializing the start of the new AboutReRemarkableDialog
         instance.
         
         Put your initialization code in here and leave __init__ undefined.

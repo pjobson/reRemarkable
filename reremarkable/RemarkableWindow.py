@@ -49,7 +49,7 @@ logger = logging.getLogger('remarkable')
 warnings.filterwarnings("ignore", ".*has no handler with id.*")
 
 from reremarkable_lib import Window, remarkableconfig
-from reremarkable.AboutRemarkableDialog import AboutRemarkableDialog
+from AboutReRemarkableDialog import AboutReRemarkableDialog
 
 app_version = 1.9 # Remarkable app version
 
@@ -60,7 +60,7 @@ class RemarkableWindow(Window):
         """Set up the main window"""
         super(RemarkableWindow, self).finish_initializing(builder)
 
-        self.AboutDialog = AboutRemarkableDialog
+        self.AboutDialog = AboutReRemarkableDialog
 
         self.settings = Gtk.Settings.get_default()
 
@@ -1521,47 +1521,16 @@ class RemarkableWindow(Window):
     ## End Custom CSS
 
     def on_menuitem_github_page_activate(self, widget):
-        webbrowser.open_new_tab("https://github.com/jamiemcg/remarkable")
+        webbrowser.open_new_tab("https://github.com/pjobson/reRemarkable")
     
     def on_menuitem_reportbug_activate(self, widget):
-        webbrowser.open_new_tab("https://github.com/jamiemcg/remarkable/issues")
+        webbrowser.open_new_tab("https://github.com/pjobson/reRemarkable/issues")
 
     def on_menuitem_about_activate(self, widget):
         self.AboutDialog.show(self)
 
     def on_menuitem_markdown_tutorial_activate(self, widget):
-        tutorial_path = self.media_path + "MarkdownTutorial.md"
-        subprocess.Popen([sys.argv[0], tutorial_path])
-
-    def on_menuitem_homepage_activate(self, widget):
-        webbrowser.open_new_tab("http://remarkableapp.github.io")
-
-    def on_menuitem_donate_activate(self, widget):
-        webbrowser.open_new_tab("http://remarkableapp.github.io/linux/donate")
- 
-    # Have disabled the check for updates function and also removed this choice from the About menu
-
-    # def on_menuitem_check_for_updates_activate(self, widget):
-    #     _thread.start_new_thread(self.check_for_updates, (True,))
-
-    # def check_for_updates(self, show = False):
-    #     try:
-    #         update_check = urlopen("http://remarkableapp.github.io/latest")
-    #         latest_version = float(update_check.readline())
-    #         if app_version < latest_version:
-    #             print("There is a new version avaiable")
-    #             subprocess.Popen(['notify-send', "Remarkable: A new version of this app is avaiable"])
-    #             update_check = urlopen("http://remarkableapp.github.io/change_log")
-    #             md = update_check.read()
-    #             html = markdown.markdown(md)
-    #             if show:
-    #                 webbrowser.open_new_tab("http://remarkableapp.github.io")
-    #         else:
-    #             if show:
-    #                 subprocess.Popen(['notify-send', "Remarkable: You already have the latest version of this app available"])
-    #                 print("You have the latest version of this app available")
-    #     except:
-    #         print("Warning: Remarkable could not connect to the internet to check for updates")
+        webbrowser.open_new_tab("https://daringfireball.net/projects/markdown/syntax")
 
     def on_text_view_changed(self, widget):
         start, end = self.text_buffer.get_bounds()
