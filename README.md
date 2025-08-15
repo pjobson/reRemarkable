@@ -35,6 +35,7 @@ reRemarkable has many features including:
 - HTML and PDF Export
 - MathJax Support
 - Dialogs for adding images, links and tables
+- Emoji picker with search functionality
 - Styles
 - Custom CSS Support
 - Keyboard Shortcuts
@@ -60,6 +61,7 @@ reRemarkable has many features including:
 | Insert Link            | `CTRL+L`       |
 | Insert Table           | `CTRL+SHFT+T`  |
 | Insert Timestamp       | `CTRL+T`       |
+| Insert Emoji           | `CTRL+ALT+E`   |
 | Italic                 | `CTRL+I`       |
 | New File               | `CTRL+N`       |
 | Open File              | `CTRL+O`       |
