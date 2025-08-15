@@ -86,7 +86,7 @@ class RemarkableWindow(Window):
         # Recent files management
         self.recent_files = []
         self.max_recent_files = 10
-        self.recent_files_file = os.path.expanduser("~/.config/remarkable/recent_files.txt")
+        self.recent_files_file = os.path.expanduser("~/.config/reremarkable/recent_files.txt")
         self.load_recent_files()
 
         self.window = self.builder.get_object("remarkable_window")
