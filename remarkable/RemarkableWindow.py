@@ -32,7 +32,7 @@ from locale import gettext as _
 from urllib.request import urlopen
 import markdown
 import os
-import pdfkit
+import pdfkit_local as pdfkit
 import re, subprocess, datetime, os, webbrowser, _thread, sys, locale
 import tempfile
 import traceback
