@@ -1,6 +1,44 @@
 # reRemarkable
 
+## Note
+
+1. I **suck** at Python, like I'm so terrible that one time I told an interviewer to hire someone else, because I'm that bad at it. If you're reading the source and think "Why the F would anyone do something like that?!" Rember this note. That being said, put a merge request in and I'm more than happy to bow out to an expert. 
+2. This is a very spare time effort for me. I will try to fix issues when I can. I would rather have contributors with merge requests than demands.
+3. This is considered an early re-release; expect, bett yet demand bugs.
+4. I've only *tested* this on Linux Mint 22.1 kernel 6.8.0-59-generic w/ Python 3.12.3. I use the word tested as loosely as possible, as the software runs and behaves expectedly.
+5. I have no idea how well if at all this will work with other operating systems. I don't have a lab setup with a bunch of VMs right now to do extensive testing and whatnot.
+
 ## Install / Uninstall
+
+If I'm missing anything here, please make an issue and I'll update.
+
+### Required Packages
+
+**DEB**
+
+```bash
+sudo apt update
+sudo apt install python3 python3-pip python3-venv python3-gi \
+  gir1.2-gtk-3.0 gir1.2-gtksource-3.0 gir1.2-webkit2-4.1 \
+  wkhtmltopdf glib-2.0-dev
+```
+
+**DNF**
+
+```bash
+sudo dnf install python3 python3-pip python3-gobject \
+  gtk3-devel gtksourceview3-devel webkit2gtk4.1-devel \
+  wkhtmltopdf glib2-devel
+```
+
+**PACMAN**
+
+```bash
+sudo pacman -S python python-pip python-gobject gtk3 \
+  gtksourceview3 webkit2gtk wkhtmltopdf glib2
+```
+
+### Install
 
 This will automatically copy the repo to your `/opt` directory
 and add a menu item.
