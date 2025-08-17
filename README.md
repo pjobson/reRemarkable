@@ -1,10 +1,10 @@
 # reRemarkable
 
-## Note
+## Notes
 
 1. I **suck** at Python, like I'm so terrible that one time I told an interviewer to hire someone else, because I'm that bad at it. If you're reading the source and think "Why the F would anyone do something like that?!" Rember this note. That being said, put a merge request in and I'm more than happy to bow out to an expert. 
 2. This is a very spare time effort for me. I will try to fix issues when I can. I would rather have contributors with merge requests than demands.
-3. This is considered an early re-release; expect, bett yet demand bugs.
+3. This is considered an early re-release; expect, better yet demand bugs.
 4. I've only *tested* this on Linux Mint 22.1 kernel 6.8.0-59-generic w/ Python 3.12.3. I use the word tested as loosely as possible, as the software runs and behaves expectedly.
 5. I have no idea how well if at all this will work with other operating systems. I don't have a lab setup with a bunch of VMs right now to do extensive testing and whatnot.
 
@@ -80,15 +80,11 @@ reRemarkable has many features including:
 
 ## Keyboard Shortcuts
 
-| Action                 | Key            |
+### Formatting
+
+| Syntax                 | Key            |
 | --                     | --             |
 | Bold                   | `CTRL+B`       |
-| Copy                   | `CTRL+C`       |
-| Cut                    | `CTRL+X`       |
-| Export HTML            | `CTRL+SHFT+E`  |
-| Export PDF             | `CTRL+E`       |
-| Find                   | `CTRL+F`       |
-| Fullscreen             | `F11`          |
 | Heading 1              | `CTRL+1`       |
 | Heading 2              | `CTRL+2`       |
 | Heading 3              | `CTRL+3`       |
@@ -101,6 +97,18 @@ reRemarkable has many features including:
 | Insert Timestamp       | `CTRL+T`       |
 | Insert Emoji           | `CTRL+ALT+E`   |
 | Italic                 | `CTRL+I`       |
+| Strikethrough          | `CTRL+D`       |
+
+### Actions
+
+| Action                 | Key            |
+| --                     | --             |
+| Copy                   | `CTRL+C`       |
+| Cut                    | `CTRL+X`       |
+| Export HTML            | `CTRL+SHFT+E`  |
+| Export PDF             | `CTRL+E`       |
+| Find                   | `CTRL+F`       |
+| Fullscreen             | `F11`          |
 | New File               | `CTRL+N`       |
 | Open File              | `CTRL+O`       |
 | Paste                  | `CTRL+V`       |
@@ -108,7 +116,6 @@ reRemarkable has many features including:
 | Redo                   | `CTRL+SHFT+Z`  |
 | Save File              | `CTRL+S`       |
 | Save File As           | `CTRL+SHFT+S`  |
-| Strikethrough          | `CTRL+D`       |
 | Undo                   | `CTRL+Z`       |
 | Zoom In                | `CTRL+Plus`    |
 | Zoom Out               | `CTRL+Minus`   |
