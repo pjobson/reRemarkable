@@ -80,15 +80,11 @@ reRemarkable has many features including:
 
 ## Keyboard Shortcuts
 
-| Action                 | Key            |
+### Formatting
+
+| Syntax                 | Key            |
 | --                     | --             |
 | Bold                   | `CTRL+B`       |
-| Copy                   | `CTRL+C`       |
-| Cut                    | `CTRL+X`       |
-| Export HTML            | `CTRL+SHFT+E`  |
-| Export PDF             | `CTRL+E`       |
-| Find                   | `CTRL+F`       |
-| Fullscreen             | `F11`          |
 | Heading 1              | `CTRL+1`       |
 | Heading 2              | `CTRL+2`       |
 | Heading 3              | `CTRL+3`       |
@@ -101,6 +97,18 @@ reRemarkable has many features including:
 | Insert Timestamp       | `CTRL+T`       |
 | Insert Emoji           | `CTRL+ALT+E`   |
 | Italic                 | `CTRL+I`       |
+| Strikethrough          | `CTRL+D`       |
+
+### Actions
+
+| Action                 | Key            |
+| --                     | --             |
+| Copy                   | `CTRL+C`       |
+| Cut                    | `CTRL+X`       |
+| Export HTML            | `CTRL+SHFT+E`  |
+| Export PDF             | `CTRL+E`       |
+| Find                   | `CTRL+F`       |
+| Fullscreen             | `F11`          |
 | New File               | `CTRL+N`       |
 | Open File              | `CTRL+O`       |
 | Paste                  | `CTRL+V`       |
@@ -108,7 +116,6 @@ reRemarkable has many features including:
 | Redo                   | `CTRL+SHFT+Z`  |
 | Save File              | `CTRL+S`       |
 | Save File As           | `CTRL+SHFT+S`  |
-| Strikethrough          | `CTRL+D`       |
 | Undo                   | `CTRL+Z`       |
 | Zoom In                | `CTRL+Plus`    |
 | Zoom Out               | `CTRL+Minus`   |
