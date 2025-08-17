@@ -1,6 +1,6 @@
 # reRemarkable
 
-## Note
+## Notes
 
 1. I **suck** at Python, like I'm so terrible that one time I told an interviewer to hire someone else, because I'm that bad at it. If you're reading the source and think "Why the F would anyone do something like that?!" Rember this note. That being said, put a merge request in and I'm more than happy to bow out to an expert. 
 2. This is a very spare time effort for me. I will try to fix issues when I can. I would rather have contributors with merge requests than demands.
