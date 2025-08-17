@@ -2,7 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Recent Development] - 2025-08-15
+## 2025-08-17
+
+### Changed
+- Updated emoji picker to use `emoji` pip package instead of hardcoded emoji list
+- Improved emoji search functionality with better name matching using emoji package's demojize function
+- Enhanced emoji tooltips with more descriptive names
+- Increased emoji picker dialog height for better browsing experience
+- Set minimum height for emoji container to display more emojis without scrolling
+- Removed emoji categorization for simplified single-grid display
+- Added emoji package to requirements.txt
+
+### Fixed
+- Better emoji name resolution for search functionality
+- Improved performance with filtered emoji list (limited to 500 emojis)
+- Added fallback emoji set if emoji package fails to load
+
+## 2025-08-16
+
+### Added
+- Updated project icon (reremarkable icon)
+- Enhanced README.md documentation
+
+### Changed
+- Icon updates and improvements
+
+## 2025-08-15
 
 ### Added
 - Emoji picker dialog with search functionality
@@ -28,9 +53,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Fixed reference from rereremarkable to reremarkable
 
-## [Recent Development] - 2025-08-14
+## 2025-08-14
 
-### FORKED
+### Forked
 - Forked from `jamiemcg/Remarkable`
 
 ### Added
@@ -48,12 +73,12 @@ All notable changes to this project will be documented in this file.
 - Removed AUR package
 - Temporarily removed install script
 
-## [Historical Updates] - 2024-04-18
+## 2024-04-18 [Remarkable Historical Updates]
 
 ### Fixed
 - Updated self type comparison to use == instead of is
 
-## [Historical Updates] - 2023-10-15
+## 2023-10-15 [Remarkable Historical Updates]
 
 ### Added
 - Install script that copies Remarkable to /opt
@@ -63,13 +88,13 @@ All notable changes to this project will be documented in this file.
 - Removed snapcraft support
 - Deleted FUNDING.yml
 
-## [Historical Updates] - 2021-03-20
+## 2021-03-20 [Remarkable Historical Updates]
 
 ### Added
 - Hide panel button for findbar panel
 - Fixed issue with cancelling save operation when quitting
 
-## [Historical Updates] - 2020-11-30 to 2020-07-01
+## 2020-11-30 to 2020-07-01 [Remarkable Historical Updates]
 
 ### Added
 - Keyboard shortcuts to README.md
@@ -78,7 +103,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - tree.getiterator - update for Python 3.9+
 
-## [Historical Updates] - 2019-11-30 to 2019-10-28
+## 2019-11-30 to 2019-10-28 [Remarkable Historical Updates] 
 
 ### Added
 - Snapcraft.yaml support
@@ -100,7 +125,7 @@ All notable changes to this project will be documented in this file.
 - Removed unused imports
 - Removed feedback page
 
-## [Historical Updates] - 2018-01-03 to 2018-01-06
+## 2018-01-03 to 2018-01-06 [Remarkable Historical Updates]
 
 ### Added
 - File chooser dialog opens in current file location
@@ -109,14 +134,14 @@ All notable changes to this project will be documented in this file.
 - Hide findbar properly when escape key is pressed
 - Fixed menu labels
 
-## [Historical Updates] - 2017-10-31 to 2017-11-29
+## 2017-10-31 to 2017-11-29 [Remarkable Historical Updates]
 
 ### Changed
 - Updated mathjax version
 - Migrated mathjax from mathjax.org to cloudflare.com
 - Updated README.md
 
-## [Historical Updates] - 2017-02-10 to 2017-07-29
+## 2017-02-10 to 2017-07-29 [Remarkable Historical Updates]
 
 ### Added
 - Right-to-left (RTL) support under View menu
@@ -137,7 +162,7 @@ All notable changes to this project will be documented in this file.
 - Pass arguments to remarkable
 - Fix relative path image issues
 
-## [Historical Updates] - 2016-08-05 to 2017-01-21
+## 2016-08-05 to 2017-01-21 [Remarkable Historical Updates]
 
 ### Added
 - GtkSourceView instead of GtkTextView
@@ -164,12 +189,12 @@ All notable changes to this project will be documented in this file.
 - Deleted setup.py
 - Deleted remarkable-1.87.egg-info
 
-## [v1.75] - 2016-06-30
+## 2016-06-30 [v1.75]
 
 ### Added
 - Initial version 1.75 release
 
-## [Initial Release] - 2016-06-11 to 2016-06-22
+## 2016-06-11 to 2016-06-22 [Initial Release]
 
 ### Added
 - Initial commit
