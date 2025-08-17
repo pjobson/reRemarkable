@@ -89,7 +89,7 @@
     <property name="window_position">center</property>
     <property name="default_width">1024</property>
     <property name="default_height">640</property>
-    <property name="icon">remarkable.png</property>
+    <property name="icon">reremarkable.png</property>
     <child>
       <object class="GtkBox" id="box">
         <property name="visible">True</property>
