@@ -12,6 +12,7 @@ from locale import gettext as _
 from urllib.request import urlopen
 import markdown
 import os
+import sys
 import pdfkit_local as pdfkit
 import re, subprocess, datetime, os, webbrowser, _thread, sys, locale
 import tempfile
@@ -39,7 +40,9 @@ from reremarkable_lib import Window, reremarkableconfig
 from AboutReRemarkableDialog import AboutReRemarkableDialog
 from EmojiPickerDialog import EmojiPickerDialog
 
-app_version = 2.2 # reRemarkable app version
+# Import version from centralized version file
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from version import __version__ as app_version
 
 class RemarkableWindow(Window):
     __gtype_name__ = "RemarkableWindow"

@@ -11,10 +11,13 @@ __all__ = [
 # Where your project will look for your data
 #(for instance, images and ui files).
 __reremarkable_data_directories__ = ['../data', '/usr/share/reremarkable']
-__license__ = 'MIT'
-__version__ = '2.2'
 
 import os
+import sys
+
+# Add project root to Python path to import version
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from version import __version__, __license__
 
 from locale import gettext as _
 
