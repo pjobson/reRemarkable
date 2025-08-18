@@ -2,19 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## 2025-08-18
+## 2025-08-18 (Updated)
 
 ### Added
+- Pure HTML support in markdown rendering - raw HTML content is now preserved and rendered
+- Raw HTML functionality based on Remarkable PR #429
 - Window layout persistence - saves window size, position, maximized state, and paned positions
-- All user configurations now stored in ~/.config/reremarkable/ following XDG Base Directory specification
+- All user configurations now stored in `~/.config/reremarkable/` following XDG Base Directory specification
 - Configuration files migrated to JSON format for better maintainability
 - Recent files functionality with JSON storage
 - Module-level style attributes for backward compatibility
 
 ### Changed
 - CSS architecture completely restructured from hardcoded strings to external .css files
-- Styles now loaded dynamically from individual CSS files in data/media/css/
-- Custom CSS file moved to ~/.config/reremarkable/custom.css for user customization
+- Styles now loaded dynamically from individual CSS files in `data/media/css/`
+- Custom CSS file moved to `~/.config/reremarkable/custom.css` for user customization
 - Modernized all Python code with f-strings, proper exception handling, and modern practices
 - Cleaned up markdown extensions for compatibility with current Python/Markdown versions
 - Updated configuration system to use JSON instead of Python dictionaries
@@ -22,6 +24,8 @@ All notable changes to this project will be documented in this file.
 - Set version to 2.0 to reflect major architecture changes and rebranding
 
 ### Fixed
+- Install script `install.sh` fixes for proper installation
+- Corrected file permissions for reremarkable.png icon files
 - AttributeError with styles.metro_vibes module attribute access
 - Styles.set() function now handles both CSS content and style names
 - Markdown extension compatibility issues with newer Python versions
@@ -29,7 +33,7 @@ All notable changes to this project will be documented in this file.
 - All import errors and method signature mismatches resolved
 
 ### Removed
-- Hardcoded CSS strings from styles.py
+- Hardcoded CSS strings from `styles.py`
 - Old configuration file formats
 - Deprecated markdown extension patterns
 
@@ -53,7 +57,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Updated project icon (reremarkable icon)
-- Enhanced README.md documentation
+- Enhanced `README.md` documentation
 
 ### Changed
 - Icon updates and improvements
@@ -72,12 +76,12 @@ All notable changes to this project will be documented in this file.
 - Screenshot
 
 ### Changed
-- Converted LICENSE to markdown format (LICENSE.md)
+- Converted LICENSE to markdown format `LICENSE.md`
 - Updated copyright references
 - Updated recent file modifiers
 - Renamed project references
 - Updated menu items, install script, and run script
-- Updated README.md with emoji picker feature
+- Updated `README.md` with emoji picker feature
 - Corrected file paths and permissions
 - Improved install/uninstall scripts with better user experience
 
@@ -87,7 +91,7 @@ All notable changes to this project will be documented in this file.
 ## 2025-08-14
 
 ### Forked
-- Forked from `jamiemcg/Remarkable`
+- Forked from [jamiemcg/Remarkable](https://github.com/jamiemcg/Remarkable)
 
 ### Added
 - Virtual environment setup
