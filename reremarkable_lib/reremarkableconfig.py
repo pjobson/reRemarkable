@@ -33,7 +33,7 @@ __all__ = [
 #(for instance, images and ui files).
 __reremarkable_data_directories__ = ['../data', '/usr/share/reremarkable']
 __license__ = 'MIT'
-__version__ = '2.0'
+__version__ = '2.1'
 
 import os
 
