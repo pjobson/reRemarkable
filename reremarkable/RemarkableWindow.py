@@ -27,7 +27,7 @@ gi.require_version('GtkSource', '3.0')
 gi.require_version('WebKit2', '4.1')
 
 from bs4 import BeautifulSoup
-from gi.repository import Gdk, Gtk, GtkSource, Pango, WebKit2
+from gi.repository import Gdk, GLib, Gtk, GtkSource, Pango, WebKit2
 from locale import gettext as _
 from urllib.request import urlopen
 import markdown
@@ -184,6 +184,8 @@ class RemarkableWindow(Window):
             self.window.add_accel_group(self.accel_group)
         self.update_recent_files_menu()
         
+        # Load window layout
+        self.load_window_layout()
 
         self.tv_scrolled = self.scrolledwindow_text_view.get_vadjustment().connect("value-changed", self.scrollPreviewTo)
         self.lp_scrolled_fix = self.scrolledwindow_live_preview.get_vadjustment().connect("value-changed", self.scrollPreviewToFix)
@@ -686,6 +688,8 @@ class RemarkableWindow(Window):
                 safe_to_quit = self.save(self)
         
         if safe_to_quit:
+            # Save window layout before quitting
+            self.save_window_layout()
             self.quit_requested(None)
         else:
             return True # Cancel the quit operation as user didn't saving the changes
@@ -1660,6 +1664,103 @@ class RemarkableWindow(Window):
 
     def set_file_chooser_path(self, chooser):
         chooser.set_current_folder(os.path.dirname(self.name))
+
+    """
+        Window layout persistence functionality
+    """
+    def save_window_layout(self):
+        """Save window layout to config file"""
+        try:
+            import json
+            
+            # Get window position and size
+            x, y = self.window.get_position()
+            width, height = self.window.get_size()
+            maximized = self.window.is_maximized()
+            
+            # Get paned position
+            paned_position = self.paned.get_position()
+            
+            # Get editor position and live preview visibility
+            editor_position = getattr(self, 'editor_position', 0)
+            live_preview_visible = self.live_preview.get_visible()
+            
+            layout_data = {
+                'window_width': width,
+                'window_height': height,
+                'window_x': x,
+                'window_y': y,
+                'window_maximized': maximized,
+                'paned_position': paned_position,
+                'editor_position': editor_position,
+                'live_preview_visible': live_preview_visible
+            }
+            
+            # Create config directory if it doesn't exist
+            config_dir = os.path.expanduser('~/.config/reremarkable')
+            os.makedirs(config_dir, exist_ok=True)
+            
+            # Save layout to file
+            layout_file = os.path.join(config_dir, 'layout.json')
+            with open(layout_file, 'w') as f:
+                json.dump(layout_data, f, indent=2)
+                
+        except Exception as e:
+            print(f"Warning: Could not save window layout: {e}")
+    
+    def load_window_layout(self):
+        """Load window layout from config file"""
+        try:
+            import json
+            
+            layout_file = os.path.expanduser('~/.config/reremarkable/layout.json')
+            if not os.path.exists(layout_file):
+                return
+                
+            with open(layout_file, 'r') as f:
+                layout_data = json.load(f)
+            
+            # Restore window size and position
+            if 'window_width' in layout_data and 'window_height' in layout_data:
+                width = layout_data['window_width']
+                height = layout_data['window_height']
+                self.window.resize(width, height)
+            
+            if 'window_x' in layout_data and 'window_y' in layout_data:
+                x = layout_data['window_x']
+                y = layout_data['window_y']
+                self.window.move(x, y)
+            
+            # Restore maximized state
+            if layout_data.get('window_maximized', False):
+                self.window.maximize()
+            
+            # Restore paned position (defer until window is realized)
+            if 'paned_position' in layout_data:
+                position = layout_data['paned_position']
+                # Use idle_add to set position after window is realized
+                GLib.idle_add(self._restore_paned_position, position)
+            
+            # Restore editor position
+            if 'editor_position' in layout_data:
+                self.editor_position = layout_data['editor_position']
+            
+            # Restore live preview visibility
+            if 'live_preview_visible' in layout_data:
+                if not layout_data['live_preview_visible'] and self.live_preview.get_visible():
+                    # Live preview should be hidden
+                    GLib.idle_add(self.toggle_live_preview, self)
+                    
+        except Exception as e:
+            print(f"Warning: Could not load window layout: {e}")
+    
+    def _restore_paned_position(self, position):
+        """Helper function to restore paned position after window is realized"""
+        try:
+            self.paned.set_position(position)
+        except Exception as e:
+            print(f"Warning: Could not restore paned position: {e}")
+        return False  # Don't repeat this idle callback
 
     """
         Recent files functionality
