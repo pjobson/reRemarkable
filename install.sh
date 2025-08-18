@@ -63,7 +63,7 @@ fi
 # Create config directory
 print_status "Creating configuration directory..."
 mkdir -p ~/.config/reremarkable
-touch ~/.config/reremarkable/data/media/css/custom.css
+touch ~/.config/reremarkable/custom.css
 
 # Create virtual environment
 print_status "Creating Python virtual environment..."
