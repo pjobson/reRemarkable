@@ -20,6 +20,8 @@ import styles
 import unicodedata
 import warnings
 from findBar import FindBar
+from SettingsManager import SettingsManager
+from MarkdownFormatter import MarkdownFormatter
 
 
 import logging
@@ -50,16 +52,20 @@ class RemarkableWindow(Window):
         self.zoom_steps = 0.1
         self.editor_position = 0
         self.homeDir = os.environ['HOME']
-        self.path = os.path.join(self.homeDir, ".reremarkable/")
-        self.settings_path = os.path.join(self.path, "reremarkable.settings")
         self.media_path = reremarkableconfig.get_data_path() + os.path.sep + "media" + os.path.sep
         self.name = "Untitled" # Title of the current file, set to 'Untitled' as default
+
+        # Initialize settings manager
+        self.settings_manager = SettingsManager(self.homeDir)
+        self.settings_manager.check_settings()
+        
+        # Initialize markdown formatter (will be set after text_buffer is created)
+        self.markdown_formatter = None
 
         self.default_html_start = '<!doctype HTML><html><head><meta charset="utf-8"><title>Made with reRemarkable!</title><link rel="stylesheet" href="' + self.media_path + 'highlightjs.default.min.css">'
         self.default_html_start += "<style type='text/css'>" + styles.get() + "</style>"
         self.default_html_start += "</head><body id='MathPreviewF'>"
         self.default_html_end = '<script src="' + self.media_path + 'highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/javascript">MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});</script></body></html>'
-        self.reremarkable_settings = {}
 
         self.default_extensions = ['markdown.extensions.extra','markdown.extensions.toc', 'markdown.extensions.smarty', 'markdown_extensions.extensions.urlize', 'markdown_extensions.extensions.Highlighting', 'markdown_extensions.extensions.Strikethrough', 'markdown_extensions.extensions.markdown_checklist', 'markdown_extensions.extensions.superscript', 'markdown_extensions.extensions.subscript', 'markdown_extensions.extensions.mathjax']
         self.safe_extensions = ['markdown.extensions.extra']
@@ -93,6 +99,9 @@ class RemarkableWindow(Window):
         self.text_view.set_buffer(self.text_buffer)
         self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
         self.text_view.connect('key-press-event', self.cursor_ctrl_arrow_rtl_fix)
+        
+        # Initialize markdown formatter with the text buffer
+        self.markdown_formatter = MarkdownFormatter(self.text_buffer)
 
         self.live_preview = WebKit2.WebView()
 
@@ -153,6 +162,9 @@ class RemarkableWindow(Window):
         # Check if an updated version of application exists [removed this functionality]
         # _thread.start_new_thread(self.check_for_updates, ())
 
+        # Load settings after UI initialization
+        self.load_settings()
+
         self.text_view.grab_focus()
         
         # Initialize recent files menu
@@ -208,95 +220,55 @@ class RemarkableWindow(Window):
             self.builder.get_object("menuitem_undo").set_sensitive(False)
             self.builder.get_object("toolbutton_undo").set_sensitive(False)
 
-    def check_settings(self):
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-        if not os.path.isfile(self.settings_path):
-            self.reremarkable_settings = {}
-            self.reremarkable_settings['css'] = '' 
-            self.reremarkable_settings['font'] = "Sans 10"  
-            self.reremarkable_settings['line-numbers'] = True
-            self.reremarkable_settings['live-preview'] = True
-            self.reremarkable_settings['nightmode'] = False       
-            self.reremarkable_settings['statusbar'] = True
-            self.reremarkable_settings['style'] = "github"
-            self.reremarkable_settings['toolbar'] = True
-            self.reremarkable_settings['vertical'] = False
-            self.reremarkable_settings['word-wrap'] = True
-            self.reremarkable_settings['zoom-level'] = 1
-            self.reremarkable_settings['rtl'] = False
-            settings_file = open(self.settings_path, 'w')
-            settings_file.write(str(self.reremarkable_settings))
-            settings_file.close()
-        else:
-            settings_file = open(self.settings_path)
-            self.reremarkable_settings = eval(settings_file.read())
-            settings_file.close()
-            self.load_settings()
-
-        self.wrap_box.set_visible(False)
-
-    def write_settings(self):
-        settings_file = open(self.settings_path, 'w')
-        settings_file.write(str(self.reremarkable_settings))
-        settings_file.close()
 
     def load_settings(self):
-        self.custom_css = self.reremarkable_settings['css'] # Load the custom css (don't auto enable)
+        self.custom_css = self.settings_manager.get_custom_css()
 
-        if self.reremarkable_settings['nightmode']:
+        if self.settings_manager.is_nightmode_enabled():
             # Enable night/dark mode on startup
             self.builder.get_object("menuitem_night_mode").set_active(True)
             self.on_menuitem_night_mode_activate(self)
 
-        if self.reremarkable_settings['word-wrap'] == False:
+        if not self.settings_manager.is_word_wrap_enabled():
             # Disable word wrap on startup
             self.builder.get_object("menuitem_word_wrap").set_active(False)
             self.on_menuitem_word_wrap_activate(self)
 
-        if self.reremarkable_settings['live-preview'] == False:
+        if not self.settings_manager.is_live_preview_enabled():
             # Disable Live Preview on startup
             self.builder.get_object("menuitem_live_preview").set_active(False)
 
-        if self.reremarkable_settings['toolbar'] == False:
+        if not self.settings_manager.is_toolbar_visible():
             # Hide the toolbar on startup
             self.on_menuitem_toolbar_activate(self)
 
-        if self.reremarkable_settings['statusbar'] == False:
+        if not self.settings_manager.is_statusbar_visible():
             # Hide the statusbar on startup
             self.on_menuitem_statusbar_activate(self)
-        
-        # New settings, create them with default if they don't exist
-        if "line-numbers" not in self.reremarkable_settings:
-            self.reremarkable_settings['line-numbers'] = True
                 
-        if self.reremarkable_settings['line-numbers'] == False:
+        if not self.settings_manager.is_line_numbers_enabled():
             # Hide line numbers on startup
             self.builder.get_object("menuitem_line_numbers").set_active(False)
-
-        if "vertical" not in self.reremarkable_settings:
-            self.reremarkable_settings['vertical'] = False
             
-        if self.reremarkable_settings['vertical'] == True:
+        if self.settings_manager.is_vertical_layout():
             # Switch to vertical layout
             self.builder.get_object("menuitem_vertical_layout").set_active(True)
 
-        if 'zoom-level' in self.reremarkable_settings:
-            self.live_preview.set_zoom_level(self.reremarkable_settings['zoom-level'])
+        self.live_preview.set_zoom_level(self.settings_manager.get_zoom_level())
 
-        if 'rtl' in self.reremarkable_settings and self.reremarkable_settings['rtl']:
+        if self.settings_manager.is_rtl_enabled():
             self.builder.get_object("menuitem_rtl").set_active(True)
 
         # Try to load the previously chosen font, may fail as font may not exist, ect.
         try:
-            self.font = self.reremarkable_settings['font']
+            self.font = self.settings_manager.get_font()
             self.text_view.override_font(Pango.FontDescription(self.font))
         except:
             pass # Loading font failed --> leave at default font
             
         # Try to load the previously chosen style. May fail if so, ignore
         try:
-            self.style = self.reremarkable_settings['style']
+            self.style = self.settings_manager.get_style()
             if self.style == "dark":
                 styles.set(styles.dark)
             elif self.style == "foghorn":
@@ -329,6 +301,8 @@ class RemarkableWindow(Window):
         except:
             print("Couldn't choose previously selected style")
 
+        self.wrap_box.set_visible(False)
+
     def scrollPreviewToFix(self, widget):
         self.scrolledwindow_live_preview.get_vadjustment().disconnect(self.lp_scrolled_fix)
         value = self.scrolledwindow_live_preview.get_vadjustment().get_value()
@@ -349,21 +323,7 @@ class RemarkableWindow(Window):
         self.lp_scrolled_fix = self.scrolledwindow_live_preview.get_vadjustment().connect("value-changed", self.scrollPreviewToFix)
 
     def on_menuitem_numbered_list_activate(self, widget):
-        if self.text_buffer.get_has_selection():
-            start, end = self.text_buffer.get_selection_bounds()
-            start_line = start.get_line()
-            end_line = end.get_line()
-            i = 1
-            while (start_line <= end_line):
-                temp_iter = self.text_buffer.get_iter_at_line(start_line)
-                self.text_buffer.insert(temp_iter, str(i) + ". ")
-                start_line += 1
-                i += 1
-        else:
-            temp_iter = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-            line_number = temp_iter.get_line()
-            start_iter = self.text_buffer.get_iter_at_line(line_number)
-            self.text_buffer.insert(start_iter, "1. ")
+        self.markdown_formatter.apply_numbered_list()
 
     def on_menuitem_new_activate(self, widget):
         self.new(self)
@@ -505,8 +465,7 @@ class RemarkableWindow(Window):
 
     def on_menuitem_rtl_toggled(self, widget):
         self.rtl(widget.get_active())
-        self.reremarkable_settings['rtl'] = widget.get_active()
-        self.write_settings()
+        self.settings_manager.set_setting('rtl', widget.get_active())
 
     def rtl(self, enabled):
         # whatever the swap choice was, it needs to be flipped now
@@ -696,14 +655,12 @@ class RemarkableWindow(Window):
 
     def zoom_in(self):
         self.live_preview.set_zoom_level((1+self.zoom_steps)*self.live_preview.get_zoom_level())
-        self.reremarkable_settings['zoom-level'] = self.live_preview.get_zoom_level()
-        self.write_settings()
+        self.settings_manager.set_setting('zoom-level', self.live_preview.get_zoom_level())
         self.scrollPreviewToFix(self)
 
     def zoom_out(self):
         self.live_preview.set_zoom_level((1-self.zoom_steps)*self.live_preview.get_zoom_level())
-        self.reremarkable_settings['zoom-level'] = self.live_preview.get_zoom_level()
-        self.write_settings()
+        self.settings_manager.set_setting('zoom-level', self.live_preview.get_zoom_level())
         self.scrollPreviewToFix(self)
 
     def on_toolbutton_zoom_in_clicked(self, widget):
@@ -850,31 +807,28 @@ class RemarkableWindow(Window):
             self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
             self.paned.set_orientation(Gtk.Orientation.VERTICAL)
             self.paned.set_position(self.paned.get_allocation().height/2) 
-            self.reremarkable_settings['vertical'] = True
+            self.settings_manager.set_setting('vertical', True)
         else:   
             self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
             self.paned.set_position(self.paned.get_allocation().width/2)
-            self.reremarkable_settings['vertical'] = False
-        self.write_settings()
+            self.settings_manager.set_setting('vertical', False)
 
     def on_menuitem_word_wrap_activate(self, widget):
         if self.builder.get_object("menuitem_word_wrap").get_active():
             self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
-            self.reremarkable_settings['word-wrap'] = True
+            self.settings_manager.set_setting('word-wrap', True)
         else:
             self.text_view.set_wrap_mode(Gtk.WrapMode.NONE)
-            self.reremarkable_settings['word-wrap'] = False   
-        self.write_settings()
+            self.settings_manager.set_setting('word-wrap', False)
 
 
     def on_menuitem_line_numbers_activate(self, widget):
         if self.builder.get_object("menuitem_line_numbers").get_active():
             self.text_view.set_show_line_numbers(True)
-            self.reremarkable_settings['line-numbers'] = True
+            self.settings_manager.set_setting('line-numbers', True)
         else:
             self.text_view.set_show_line_numbers(False)
-            self.reremarkable_settings['line-numbers'] = False
-        self.write_settings()
+            self.settings_manager.set_setting('line-numbers', False)
             
     def on_menuitem_live_preview_activate(self, widget):
         self.toggle_live_preview(self)
@@ -887,7 +841,7 @@ class RemarkableWindow(Window):
                 self.builder.get_object("menuitem_swap").set_sensitive(False)
                 self.builder.get_object("menuitem_swap").set_tooltip_text("Enable Live Preview First")
                 self.builder.get_object("toolbar1").set_visible(False)
-                self.reremarkable_settings['live-preview'] = False
+                self.settings_manager.set_setting('live-preview', False)
         else:  # Show the live preview
             if self.editor_position == 0:
                 self.paned.add(self.scrolledwindow_live_preview)
@@ -896,12 +850,11 @@ class RemarkableWindow(Window):
                 self.paned.add(self.scrolledwindow_live_preview)
                 self.paned.add(self.scrolledwindow_text_view)
             self.live_preview.set_visible(True)
-            self.reremarkable_settings['live-preview'] = True
+            self.settings_manager.set_setting('live-preview', True)
             self.builder.get_object("menuitem_swap").set_sensitive(True)
             self.builder.get_object("menuitem_swap").set_tooltip_text("")
             self.builder.get_object("toolbar1").set_visible(True)
             self.update_live_preview(self)
-        self.write_settings()
 
 
     def on_menuitem_swap_activate(self, widget):
@@ -947,8 +900,7 @@ class RemarkableWindow(Window):
 
     def font_dialog_ok(self, widget):
         self.font = self.font_chooser.get_font_name()
-        self.reremarkable_settings['font'] = self.font # Save prefs
-        self.write_settings()    
+        self.settings_manager.set_setting('font', self.font)
         self.text_view.override_font(Pango.FontDescription(self.font))
 
         # Now adjust the size using TextTag
@@ -958,26 +910,24 @@ class RemarkableWindow(Window):
         if self.statusbar.get_visible():
             self.statusbar.set_visible(False)
             self.builder.get_object("menuitem_statusbar").set_label("Show Statusbar")
-            self.reremarkable_settings['statusbar'] = False
+            self.settings_manager.set_setting('statusbar', False)
         else:
             self.statusbar.set_visible(True)
             self.update_status_bar(self)
             self.builder.get_object("menuitem_statusbar").set_label("Hide Statusbar")
-            self.reremarkable_settings['statusbar'] = True
-        self.write_settings()
+            self.settings_manager.set_setting('statusbar', True)
 
     def on_menuitem_toolbar_activate(self, widget):
         if self.toolbar.get_visible():
             self.toolbar.set_visible(False)
             self.builder.get_object("menuitem_toolbar").set_label("Show Toolbar")
             self.builder.get_object("toolbar1").set_visible(False)
-            self.reremarkable_settings['toolbar'] = False
+            self.settings_manager.set_setting('toolbar', False)
         else:
             self.toolbar.set_visible(True)
             self.builder.get_object("menuitem_toolbar").set_label("Hide Toolbar")
             self.builder.get_object("toolbar1").set_visible(True)
-            self.reremarkable_settings['toolbar'] = True
-        self.write_settings()
+            self.settings_manager.set_setting('toolbar', True)
 
     def on_menuitem_preview_browser_activate(self, widget):
         # Create a temporary HTML file
@@ -1005,11 +955,10 @@ class RemarkableWindow(Window):
     def on_menuitem_night_mode_activate(self, widget):
         if self.builder.get_object("menuitem_night_mode").get_active():
             self.settings.set_property("gtk-application-prefer-dark-theme", True)
-            self.reremarkable_settings['nightmode'] = True
+            self.settings_manager.set_setting('nightmode', True)
         else:
             self.settings.set_property("gtk-application-prefer-dark-theme", False)
-            self.reremarkable_settings['nightmode'] = False
-        self.write_settings()
+            self.settings_manager.set_setting('nightmode', False)
 
     def on_menuitem_fullscreen_activate(self, widget):
         if self.is_fullscreen:
@@ -1022,212 +971,67 @@ class RemarkableWindow(Window):
             self.builder.get_object("menuitem_fullscreen").set_label("Exit fullscreen")
 
     def on_menuitem_bold_activate(self, widget):
-        self.bold(self)
+        self.markdown_formatter.apply_bold()
 
     def on_toolbutton_bold_clicked(self, widget):
-        self.bold(self)
-
-    def bold(self, widget):
-        if not self.text_buffer.get_has_selection():  # Nothing has been selected, add **** and place cursor in middle
-            self.text_buffer.insert_at_cursor("****")
-            loc = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-            loc.backward_chars(2)
-            self.text_buffer.place_cursor(loc)
-        else:  # Turn selection bold
-            selection_bounds = self.text_buffer.get_selection_bounds()
-            mark1 = self.text_buffer.create_mark(None, selection_bounds[0], False)
-            mark2 = self.text_buffer.create_mark(None, selection_bounds[1], False)
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark1), "**")
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark2), "**")
+        self.markdown_formatter.apply_bold()
 
     def on_menuitem_italic_activate(self, widget):
-        self.italic(self)
+        self.markdown_formatter.apply_italic()
 
     def on_toolbutton_italic_clicked(self, widget):
-        self.italic(self)
-
-    def italic(self, widget):
-        if not self.text_buffer.get_has_selection():  # Nothing has been selected, add ** and place cursor in middle
-            self.text_buffer.insert_at_cursor("**")
-            loc = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-            loc.backward_chars(1)
-            self.text_buffer.place_cursor(loc)
-        else:  # Turn selection italic
-            selection_bounds = self.text_buffer.get_selection_bounds()
-            mark1 = self.text_buffer.create_mark(None, selection_bounds[0], False)
-            mark2 = self.text_buffer.create_mark(None, selection_bounds[1], False)
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark1), "*")
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark2), "*")
+        self.markdown_formatter.apply_italic()
 
     def on_menuitem_strikethrough_activate(self, widget):
-        self.strikethrough(self)
+        self.markdown_formatter.apply_strikethrough()
 
     def on_toolbutton_strikethrough_clicked(self, widget):
-        self.strikethrough(self)
-
-    def strikethrough(self, widget):
-        if not self.text_buffer.get_has_selection():  # Nothing has been selected, add **** and place cursor in middle
-            self.text_buffer.insert_at_cursor("~~~~")
-            loc = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-            loc.backward_chars(2)
-            self.text_buffer.place_cursor(loc)
-        else:  # Strikethrough selection
-            selection_bounds = self.text_buffer.get_selection_bounds()
-            mark1 = self.text_buffer.create_mark(None, selection_bounds[0], False)
-            mark2 = self.text_buffer.create_mark(None, selection_bounds[1], False)
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark1), "~~")
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark2), "~~")
+        self.markdown_formatter.apply_strikethrough()
 
     def on_menuitem_highlight_activate(self, widget):
-        if not self.text_buffer.get_has_selection():  # Nothing has been selected, add ==== and place cursor in middle
-            self.text_buffer.insert_at_cursor("====")
-            loc = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-            loc.backward_chars(2)
-            self.text_buffer.place_cursor(loc)
-        else:  # Highlight the selected text
-            selection_bounds = self.text_buffer.get_selection_bounds()
-            mark1 = self.text_buffer.create_mark(None, selection_bounds[0], False)
-            mark2 = self.text_buffer.create_mark(None, selection_bounds[1], False)
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark1), "==")
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark2), "==")
+        self.markdown_formatter.apply_highlight()
 
     def on_menuitem_superscript_activate(self, widget):
-        if not self.text_buffer.get_has_selection():  # Nothing has been selected, add ^^ and place cursor in middle
-            self.text_buffer.insert_at_cursor("^^")
-            loc = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-            loc.backward_chars(1)
-            self.text_buffer.place_cursor(loc)
-        else:  # Convert selection to superscript
-            selection_bounds = self.text_buffer.get_selection_bounds()
-            mark1 = self.text_buffer.create_mark(None, selection_bounds[0], False)
-            mark2 = self.text_buffer.create_mark(None, selection_bounds[1], False)
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark1), "^")
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark2), "^")
+        self.markdown_formatter.apply_superscript()
 
     def on_menuitem_subscript_activate(self, widget):
-        if not self.text_buffer.get_has_selection():  # Nothing has been selected, add ~~ and place cursor in middle
-            self.text_buffer.insert_at_cursor("~~")
-            loc = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-            loc.backward_chars(1)
-            self.text_buffer.place_cursor(loc)
-        else:  # Convert selection to subscript
-            selection_bounds = self.text_buffer.get_selection_bounds()
-            mark1 = self.text_buffer.create_mark(None, selection_bounds[0], False)
-            mark2 = self.text_buffer.create_mark(None, selection_bounds[1], False)
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark1), "~")
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(mark2), "~")
+        self.markdown_formatter.apply_subscript()
 
     def on_menuitem_block_quote_activate(self, widget):
-        if self.text_buffer.get_has_selection():
-            start, end = self.text_buffer.get_selection_bounds()
-
-            start_line = start.get_line()
-            end_line = end.get_line()
-
-            while start_line <= end_line:
-                temp_iter = self.text_buffer.get_iter_at_line(start_line)
-                self.text_buffer.insert(temp_iter, ">")
-                start_line += 1
-        else:
-            temp_iter = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-            line_number = temp_iter.get_line()
-            start_iter = self.text_buffer.get_iter_at_line(line_number)
-            self.text_buffer.insert(start_iter, ">")
+        self.markdown_formatter.apply_block_quote()
 
     def on_menuitem_code_activate(self, widget):
-        if self.text_buffer.get_has_selection():
-            start, end = self.text_buffer.get_selection_bounds()
-
-            start_line = start.get_line()
-            end_line = end.get_line()
-
-            while (start_line <= end_line):
-                temp_iter = self.text_buffer.get_iter_at_line(start_line)
-                self.text_buffer.insert(temp_iter, "\t")
-                start_line += 1
-        else:
-            temp_iter = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-            line_number = temp_iter.get_line()
-            start_iter = self.text_buffer.get_iter_at_line(line_number)
-            self.text_buffer.insert(start_iter, "\t")
+        self.markdown_formatter.apply_code_block()
 
     def on_menuitem_bullet_list_activate(self, widget):
-        if self.text_buffer.get_has_selection():
-            start, end = self.text_buffer.get_selection_bounds()
-            start_line = start.get_line()
-            end_line = end.get_line()
-
-            while (start_line <= end_line):
-                temp_iter = self.text_buffer.get_iter_at_line(start_line)
-                self.text_buffer.insert(temp_iter, "- ")
-                start_line += 1
-
-        else:
-            temp_iter = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-            line_number = temp_iter.get_line()
-            start_iter = self.text_buffer.get_iter_at_line(line_number)
-            self.text_buffer.insert(start_iter, "- ")
-
-    def add_heading(self, heading_size):
-        # Get iters for start and end of line at cursor
-        temp_iter = self.text_buffer.get_iter_at_mark(self.text_buffer.get_insert())
-        line_number = temp_iter.get_line()
-        start_iter = self.text_buffer.get_iter_at_line(line_number)
-        end_iter = self.text_buffer.get_iter_at_line(line_number)
-        end_iter.forward_to_line_end()
-
-        # Get the text on the current line and check if there is already a heading
-        text = self.text_buffer.get_text(start_iter, end_iter, True)
-
-        if len(text) == 0:
-            # This line is empty, add the #'s
-            text = ("#") * heading_size + " "
-        
-        elif text.lstrip()[0] == "#":
-            # This line is already a heading. Remove #'s and replace with new #'s
-            # Issue, this uses lstrip() to remove whitespace, which user may wish to preserve
-            text_without_heading = "".join(re.split("^#+", text)).lstrip()
-            text = ("#" * heading_size) + " " + text_without_heading
-        else:
-            # This line doesn't already have a heading, simple prepend #'s
-            text = ("#" * heading_size) + " " + text
-
-        # Replace text with new heading character(s)
-        self.text_buffer.delete(start_iter, end_iter)
-        self.text_buffer.insert(start_iter, text)
+        self.markdown_formatter.apply_bullet_list()
 
     def on_menuitem_heading_1_activate(self, widget):
-        self.add_heading(1)
+        self.markdown_formatter.apply_heading(1)
 
     def on_menuitem_heading_2_activate(self, widget):
-        self.add_heading(2)
+        self.markdown_formatter.apply_heading(2)
 
     def on_menuitem_heading_3_activate(self, widget):
-        self.add_heading(3)
+        self.markdown_formatter.apply_heading(3)
 
     def on_menuitem_heading_4_activate(self, widget):
-        self.add_heading(4)
+        self.markdown_formatter.apply_heading(4)
 
     def on_menuitem_horizonatal_rule_activate(self, widget):
-        if not self.text_buffer.get_has_selection():
-            self.text_buffer.insert_at_cursor("\n***\n")
-        else:  # Turn selection bold
-            selection_bounds = self.text_buffer.get_selection_bounds()
-            markR = self.text_buffer.create_mark(None, selection_bounds[1], False)
-            self.text_buffer.insert(self.text_buffer.get_iter_at_mark(markR), "\n***\n")
+        self.markdown_formatter.insert_horizontal_rule()
 
     def on_menuitem_timestamp_activate(self, widget):
-        self.insert_timestamp(self)
+        self.markdown_formatter.insert_timestamp()
 
     def on_toolbutton_timestamp_clicked(self, widget):
-        self.insert_timestamp(self)
+        self.markdown_formatter.insert_timestamp()
 
     def on_toolbutton_emoji_clicked(self, widget):
         self.show_emoji_picker(self)
 
     def insert_timestamp(self, widget):
-        text = datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p") + " "
-        self.text_buffer.insert_at_cursor(text + "\n")
+        self.markdown_formatter.insert_timestamp()
         self.text_view.grab_focus()
 
     def on_menuitem_image_activate(self, widget):
@@ -1288,7 +1092,7 @@ class RemarkableWindow(Window):
                         table_str += line + "\n"
                         n_rows -= 1
 
-                self.text_buffer.insert_at_cursor(table_str)
+                self.markdown_formatter.create_table(n_rows, n_columns)
         self.insert_window_table.hide()
 
     def insert_image(self, widget):
@@ -1328,20 +1132,10 @@ class RemarkableWindow(Window):
 
     def insert_image_cmd(self, widget, window):
         if self.entry_url_i.get_text():
-            if self.entry_title_i.get_text():
-                if self.entry_alt_text_i.get_text():  # Fill alt_text with a space ( > 1 char required)
-                    link = "![" + self.entry_alt_text_i.get_text() + "](" + self.entry_url_i.get_text()
-                    link += '  "' + self.entry_title_i.get_text() + '")'
-                    self.text_buffer.insert_at_cursor(link)
-                else:
-                    link = "![ ](" + self.entry_url_i.get_text()
-                    link += '  "' + self.entry_title_i.get_text() + '")'
-                    self.text_buffer.insert_at_cursor(link)
-            else:
-                link = "![" + self.entry_alt_text_i.get_text() + "](" + self.entry_url_i.get_text() + ") "
-                self.text_buffer.insert_at_cursor(link)
-        else:
-            pass
+            alt_text = self.entry_alt_text_i.get_text() or " "
+            url = self.entry_url_i.get_text()
+            title = self.entry_title_i.get_text() if self.entry_title_i.get_text() else None
+            self.markdown_formatter.insert_image(alt_text, url, title)
         self.insert_window_image.hide()
 
     def on_menuitem_link_activate(self, widget):
@@ -1381,14 +1175,9 @@ class RemarkableWindow(Window):
 
     def insert_link_cmd(self, widget, window):
         if self.entry_url.get_text():
-            link = "[" + self.entry_alt_text.get_text() + "](" + self.entry_url.get_text() + ") "
-            # Delete highlighted text before inserting the link
-            if self.text_buffer.get_has_selection():
-                start, end = self.text_buffer.get_selection_bounds()
-                self.text_buffer.delete(start, end)
-            self.text_buffer.insert_at_cursor(link)
-        else:
-            pass
+            alt_text = self.entry_alt_text.get_text()
+            url = self.entry_url.get_text()
+            self.markdown_formatter.insert_link(alt_text, url)
         self.insert_window_link.hide()
 
     def on_menuitem_emoji_activate(self, widget):
@@ -1411,79 +1200,68 @@ class RemarkableWindow(Window):
         styles.set(styles.dark)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "dark"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'dark')
 
     def on_menuitem_foghorn_activate(self, widget):
         styles.set(styles.foghorn)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "foghorn"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'foghorn')
 
     def on_menuitem_github_activate(self, widget):
         styles.set(styles.github)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "github"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'github')
 
     def on_menuitem_handwritten_activate(self, widget):
         styles.set(styles.handwriting_css)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "handwriting_css"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'handwriting_css')
 
     def on_menuitem_markdown_activate(self, widget):
         styles.set(styles.markdown)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "markdown"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'markdown')
 
     def on_menuitem_metro_vibes_activate(self, widget):
         styles.set(styles.metro_vibes)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "metro_vibes"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'metro_vibes')
 
     def on_menuitem_metro_vibes_dark_activate(self, widget):
         styles.set(styles.metro_vibes_dark)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "metro_vibes_dark"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'metro_vibes_dark')
 
 
     def on_menuitem_modern_activate(self, widget):
         styles.set(styles.modern_css)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "modern_css"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'modern_css')
 
     def on_menuitem_screen_activate(self, widget):
         styles.set(styles.screen)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "screen"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'screen')
     
     def on_menuitem_solarized_dark_activate(self, widget):
         styles.set(styles.solarized_dark)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "solarized_dark"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'solarized_dark')
 
     def on_menuitem_solarized_light_activate(self, widget):
         styles.set(styles.solarized_light)
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "solarized_light"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'solarized_light')
 
     # Custom CSS
     def on_menuitem_custom_activate(self, widget):
@@ -1510,12 +1288,11 @@ class RemarkableWindow(Window):
         start, end = tb.get_bounds()
         self.custom_css = tb.get_text(start, end, False).replace("'", '"')
         styles.set(self.custom_css)
-        self.reremarkable_settings['css'] = styles.get()
+        self.settings_manager.set_setting('css', styles.get())
         window.hide()
         self.update_style(self)
         self.update_live_preview(self)
-        self.reremarkable_settings['style'] = "custom"
-        self.write_settings()
+        self.settings_manager.set_setting('style', 'custom')
     ## End Custom CSS
 
     def on_menuitem_github_page_activate(self, widget):
@@ -1575,7 +1352,7 @@ class RemarkableWindow(Window):
     def cursor_ctrl_arrow_rtl_fix(self, widget, event):
         if event.keyval in [Gdk.KEY_Left, Gdk.KEY_Right]:
             if event.state & Gdk.ModifierType.CONTROL_MASK:
-                is_rtl = self.reremarkable_settings['rtl']
+                is_rtl = self.settings_manager.is_rtl_enabled()
 
                 dirs = {
                     Gdk.KEY_Left: is_rtl and 1 or -1,
