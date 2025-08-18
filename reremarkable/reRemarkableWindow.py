@@ -24,6 +24,7 @@ from SettingsManager import SettingsManager
 from MarkdownFormatter import MarkdownFormatter
 from FileManager import FileManager
 from StyleManager import StyleManager
+from LayoutManager import LayoutManager
 
 
 import logging
@@ -50,9 +51,6 @@ class RemarkableWindow(Window):
 
         self.settings = Gtk.Settings.get_default()
 
-        self.is_fullscreen = False
-        self.zoom_steps = 0.1
-        self.editor_position = 0
         self.homeDir = os.environ['HOME']
         self.media_path = reremarkableconfig.get_data_path() + os.path.sep + "media" + os.path.sep
 
@@ -66,6 +64,8 @@ class RemarkableWindow(Window):
         self.file_manager = None
         # Initialize style manager
         self.style_manager = None
+        # Initialize layout manager
+        self.layout_manager = None
 
         self.default_html_end = '<script src="' + self.media_path + 'highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/javascript">MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});</script></body></html>'
 
@@ -112,6 +112,9 @@ class RemarkableWindow(Window):
         # Initialize style manager
         self.style_manager = StyleManager(self.settings_manager, self.media_path)
         self.style_manager.add_style_change_callback(self.on_style_changed)
+        
+        # Initialize layout manager (will be set up after UI components are created)
+        self.layout_manager = None
 
         self.live_preview = WebKit2.WebView()
 
@@ -133,6 +136,14 @@ class RemarkableWindow(Window):
 
         self.statusbar = self.builder.get_object("statusbar")
         self.context_id = self.statusbar.get_context_id("main status bar")
+
+        # Initialize layout manager now that UI components are available
+        self.layout_manager = LayoutManager(self.window, self.settings_manager)
+        self.layout_manager.set_ui_components(
+            self.paned, self.live_preview, self.scrolledwindow_text_view,
+            self.scrolledwindow_live_preview, self.text_view, self.toolbar,
+            self.statusbar, self.builder
+        )
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         self.update_status_bar(self)
@@ -179,7 +190,7 @@ class RemarkableWindow(Window):
         self.update_recent_files_menu()
         
         # Load window layout
-        self.load_window_layout()
+        self.layout_manager.load_window_layout()
 
         self.tv_scrolled = self.scrolledwindow_text_view.get_vadjustment().connect("value-changed", self.scrollPreviewTo)
         self.lp_scrolled_fix = self.scrolledwindow_live_preview.get_vadjustment().connect("value-changed", self.scrollPreviewToFix)
@@ -232,29 +243,28 @@ class RemarkableWindow(Window):
         if not self.settings_manager.is_word_wrap_enabled():
             # Disable word wrap on startup
             self.builder.get_object("menuitem_word_wrap").set_active(False)
-            self.on_menuitem_word_wrap_activate(self)
+            self.layout_manager.toggle_word_wrap()
 
         if not self.settings_manager.is_live_preview_enabled():
             # Disable Live Preview on startup
             self.builder.get_object("menuitem_live_preview").set_active(False)
+            self.layout_manager.apply_live_preview_setting(lambda: self.update_live_preview(self))
 
-        if not self.settings_manager.is_toolbar_visible():
-            # Hide the toolbar on startup
-            self.on_menuitem_toolbar_activate(self)
+        # Apply toolbar setting
+        self.layout_manager.apply_toolbar_setting()
 
-        if not self.settings_manager.is_statusbar_visible():
-            # Hide the statusbar on startup
-            self.on_menuitem_statusbar_activate(self)
+        # Apply statusbar setting
+        self.layout_manager.apply_statusbar_setting(lambda: self.update_status_bar(self))
                 
         if not self.settings_manager.is_line_numbers_enabled():
             # Hide line numbers on startup
             self.builder.get_object("menuitem_line_numbers").set_active(False)
+            self.layout_manager.toggle_line_numbers()
             
-        if self.settings_manager.is_vertical_layout():
-            # Switch to vertical layout
-            self.builder.get_object("menuitem_vertical_layout").set_active(True)
+        # Apply vertical layout setting
+        self.layout_manager.apply_vertical_layout_setting()
 
-        self.live_preview.set_zoom_level(self.settings_manager.get_zoom_level())
+        self.layout_manager.apply_zoom_setting()
 
         if self.settings_manager.is_rtl_enabled():
             self.builder.get_object("menuitem_rtl").set_active(True)
@@ -477,7 +487,7 @@ class RemarkableWindow(Window):
         
         if safe_to_quit:
             # Save window layout before quitting
-            self.save_window_layout()
+            self.layout_manager.save_window_layout()
             self.quit_requested(None)
         else:
             return True # Cancel the quit operation as user didn't want to save the changes
@@ -503,14 +513,10 @@ class RemarkableWindow(Window):
         self.redo(self)
 
     def zoom_in(self):
-        self.live_preview.set_zoom_level((1+self.zoom_steps)*self.live_preview.get_zoom_level())
-        self.settings_manager.set_setting('zoom-level', self.live_preview.get_zoom_level())
-        self.scrollPreviewToFix(self)
+        self.layout_manager.zoom_in(lambda: self.scrollPreviewToFix(self))
 
     def zoom_out(self):
-        self.live_preview.set_zoom_level((1-self.zoom_steps)*self.live_preview.get_zoom_level())
-        self.settings_manager.set_setting('zoom-level', self.live_preview.get_zoom_level())
-        self.scrollPreviewToFix(self)
+        self.layout_manager.zoom_out(lambda: self.scrollPreviewToFix(self))
 
     def on_toolbutton_zoom_in_clicked(self, widget):
         self.zoom_in()
@@ -650,76 +656,27 @@ class RemarkableWindow(Window):
             self.clipboard.set_text(text, -1)
 
     def on_menuitem_vertical_layout_activate(self, widget):
-        if self.builder.get_object("menuitem_vertical_layout").get_active():
-            # Switch to vertical layout and need to reset position
-            self.paned.set_orientation(Gtk.Orientation.VERTICAL)
-            self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
-            self.paned.set_orientation(Gtk.Orientation.VERTICAL)
-            self.paned.set_position(self.paned.get_allocation().height/2) 
-            self.settings_manager.set_setting('vertical', True)
-        else:   
-            self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
-            self.paned.set_position(self.paned.get_allocation().width/2)
-            self.settings_manager.set_setting('vertical', False)
+        self.layout_manager.toggle_vertical_layout()
 
     def on_menuitem_word_wrap_activate(self, widget):
-        if self.builder.get_object("menuitem_word_wrap").get_active():
-            self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
-            self.settings_manager.set_setting('word-wrap', True)
-        else:
-            self.text_view.set_wrap_mode(Gtk.WrapMode.NONE)
-            self.settings_manager.set_setting('word-wrap', False)
+        # Update settings based on menu state
+        active = self.builder.get_object("menuitem_word_wrap").get_active()
+        self.settings_manager.set_setting('word-wrap', active)
+        self.layout_manager.toggle_word_wrap()
 
 
     def on_menuitem_line_numbers_activate(self, widget):
-        if self.builder.get_object("menuitem_line_numbers").get_active():
-            self.text_view.set_show_line_numbers(True)
-            self.settings_manager.set_setting('line-numbers', True)
-        else:
-            self.text_view.set_show_line_numbers(False)
-            self.settings_manager.set_setting('line-numbers', False)
+        # Update settings based on menu state
+        active = self.builder.get_object("menuitem_line_numbers").get_active()
+        self.settings_manager.set_setting('line-numbers', active)
+        self.layout_manager.toggle_line_numbers()
             
     def on_menuitem_live_preview_activate(self, widget):
-        self.toggle_live_preview(self)
-
-    def toggle_live_preview(self, widget):
-        if self.live_preview.get_visible():
-                # Hide the live preview
-                self.paned.remove(self.scrolledwindow_live_preview)
-                self.live_preview.set_visible(False)
-                self.builder.get_object("menuitem_swap").set_sensitive(False)
-                self.builder.get_object("menuitem_swap").set_tooltip_text("Enable Live Preview First")
-                self.builder.get_object("toolbar1").set_visible(False)
-                self.settings_manager.set_setting('live-preview', False)
-        else:  # Show the live preview
-            if self.editor_position == 0:
-                self.paned.add(self.scrolledwindow_live_preview)
-            else:
-                self.paned.remove(self.scrolledwindow_text_view)
-                self.paned.add(self.scrolledwindow_live_preview)
-                self.paned.add(self.scrolledwindow_text_view)
-            self.live_preview.set_visible(True)
-            self.settings_manager.set_setting('live-preview', True)
-            self.builder.get_object("menuitem_swap").set_sensitive(True)
-            self.builder.get_object("menuitem_swap").set_tooltip_text("")
-            self.builder.get_object("toolbar1").set_visible(True)
-            self.update_live_preview(self)
+        self.layout_manager.toggle_live_preview(lambda: self.update_live_preview(self))
 
 
     def on_menuitem_swap_activate(self, widget):
-        if self.live_preview.get_visible():
-            self.paned.remove(self.scrolledwindow_live_preview)
-            self.paned.remove(self.scrolledwindow_text_view)
-            if self.editor_position == 0:
-                self.paned.add(self.scrolledwindow_live_preview)
-                self.paned.add(self.scrolledwindow_text_view)
-                self.editor_position = 1
-            else:
-                self.paned.add(self.scrolledwindow_text_view)
-                self.paned.add(self.scrolledwindow_live_preview)
-                self.editor_position = 0
-        else:
-            pass # Do nothing as live preview is not visible
+        self.layout_manager.swap_panes()
 
     def on_menuitem_zoom_in_activate(self, widget):
         self.zoom_in()
@@ -756,27 +713,10 @@ class RemarkableWindow(Window):
         self.font_dialog_destroyed(self)
 
     def on_menuitem_statusbar_activate(self, widget):
-        if self.statusbar.get_visible():
-            self.statusbar.set_visible(False)
-            self.builder.get_object("menuitem_statusbar").set_label("Show Statusbar")
-            self.settings_manager.set_setting('statusbar', False)
-        else:
-            self.statusbar.set_visible(True)
-            self.update_status_bar(self)
-            self.builder.get_object("menuitem_statusbar").set_label("Hide Statusbar")
-            self.settings_manager.set_setting('statusbar', True)
+        self.layout_manager.toggle_statusbar(lambda: self.update_status_bar(self))
 
     def on_menuitem_toolbar_activate(self, widget):
-        if self.toolbar.get_visible():
-            self.toolbar.set_visible(False)
-            self.builder.get_object("menuitem_toolbar").set_label("Show Toolbar")
-            self.builder.get_object("toolbar1").set_visible(False)
-            self.settings_manager.set_setting('toolbar', False)
-        else:
-            self.toolbar.set_visible(True)
-            self.builder.get_object("menuitem_toolbar").set_label("Hide Toolbar")
-            self.builder.get_object("toolbar1").set_visible(True)
-            self.settings_manager.set_setting('toolbar', True)
+        self.layout_manager.toggle_toolbar()
 
     def on_menuitem_preview_browser_activate(self, widget):
         # Create a temporary HTML file
@@ -810,14 +750,7 @@ class RemarkableWindow(Window):
             self.settings_manager.set_setting('nightmode', False)
 
     def on_menuitem_fullscreen_activate(self, widget):
-        if self.is_fullscreen:
-            self.window.unfullscreen()
-            self.is_fullscreen = False
-            self.builder.get_object("menuitem_fullscreen").set_label("Fullscreen")
-        else:
-            self.window.fullscreen()
-            self.is_fullscreen = True
-            self.builder.get_object("menuitem_fullscreen").set_label("Exit fullscreen")
+        self.layout_manager.toggle_fullscreen()
 
     def on_menuitem_bold_activate(self, widget):
         self.markdown_formatter.apply_bold()
@@ -1224,102 +1157,6 @@ class RemarkableWindow(Window):
             i -= 1
 
 
-    """
-        Window layout persistence functionality
-    """
-    def save_window_layout(self):
-        """Save window layout to config file"""
-        try:
-            import json
-            
-            # Get window position and size
-            x, y = self.window.get_position()
-            width, height = self.window.get_size()
-            maximized = self.window.is_maximized()
-            
-            # Get paned position
-            paned_position = self.paned.get_position()
-            
-            # Get editor position and live preview visibility
-            editor_position = getattr(self, 'editor_position', 0)
-            live_preview_visible = self.live_preview.get_visible()
-            
-            layout_data = {
-                'window_width': width,
-                'window_height': height,
-                'window_x': x,
-                'window_y': y,
-                'window_maximized': maximized,
-                'paned_position': paned_position,
-                'editor_position': editor_position,
-                'live_preview_visible': live_preview_visible
-            }
-            
-            # Create config directory if it doesn't exist
-            config_dir = os.path.expanduser('~/.config/reremarkable')
-            os.makedirs(config_dir, exist_ok=True)
-            
-            # Save layout to file
-            layout_file = os.path.join(config_dir, 'layout.json')
-            with open(layout_file, 'w') as f:
-                json.dump(layout_data, f, indent=2)
-                
-        except Exception as e:
-            print(f"Warning: Could not save window layout: {e}")
-    
-    def load_window_layout(self):
-        """Load window layout from config file"""
-        try:
-            import json
-            
-            layout_file = os.path.expanduser('~/.config/reremarkable/layout.json')
-            if not os.path.exists(layout_file):
-                return
-                
-            with open(layout_file, 'r') as f:
-                layout_data = json.load(f)
-            
-            # Restore window size and position
-            if 'window_width' in layout_data and 'window_height' in layout_data:
-                width = layout_data['window_width']
-                height = layout_data['window_height']
-                self.window.resize(width, height)
-            
-            if 'window_x' in layout_data and 'window_y' in layout_data:
-                x = layout_data['window_x']
-                y = layout_data['window_y']
-                self.window.move(x, y)
-            
-            # Restore maximized state
-            if layout_data.get('window_maximized', False):
-                self.window.maximize()
-            
-            # Restore paned position (defer until window is realized)
-            if 'paned_position' in layout_data:
-                position = layout_data['paned_position']
-                # Use idle_add to set position after window is realized
-                GLib.idle_add(self._restore_paned_position, position)
-            
-            # Restore editor position
-            if 'editor_position' in layout_data:
-                self.editor_position = layout_data['editor_position']
-            
-            # Restore live preview visibility
-            if 'live_preview_visible' in layout_data:
-                if not layout_data['live_preview_visible'] and self.live_preview.get_visible():
-                    # Live preview should be hidden
-                    GLib.idle_add(self.toggle_live_preview, self)
-                    
-        except Exception as e:
-            print(f"Warning: Could not load window layout: {e}")
-    
-    def _restore_paned_position(self, position):
-        """Helper function to restore paned position after window is realized"""
-        try:
-            self.paned.set_position(position)
-        except Exception as e:
-            print(f"Warning: Could not restore paned position: {e}")
-        return False  # Don't repeat this idle callback
 
     """
         Recent files functionality
