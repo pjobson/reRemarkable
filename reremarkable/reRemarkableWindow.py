@@ -23,6 +23,7 @@ from findBar import FindBar
 from SettingsManager import SettingsManager
 from MarkdownFormatter import MarkdownFormatter
 from FileManager import FileManager
+from StyleManager import StyleManager
 
 
 import logging
@@ -63,10 +64,9 @@ class RemarkableWindow(Window):
         self.markdown_formatter = None
         # Initialize file manager (will be set after text_buffer is created)
         self.file_manager = None
+        # Initialize style manager
+        self.style_manager = None
 
-        self.default_html_start = '<!doctype HTML><html><head><meta charset="utf-8"><title>Made with reRemarkable!</title><link rel="stylesheet" href="' + self.media_path + 'highlightjs.default.min.css">'
-        self.default_html_start += "<style type='text/css'>" + styles.get() + "</style>"
-        self.default_html_start += "</head><body id='MathPreviewF'>"
         self.default_html_end = '<script src="' + self.media_path + 'highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/javascript">MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});</script></body></html>'
 
         self.default_extensions = ['markdown.extensions.extra','markdown.extensions.toc', 'markdown.extensions.smarty', 'markdown_extensions.extensions.urlize', 'markdown_extensions.extensions.Highlighting', 'markdown_extensions.extensions.Strikethrough', 'markdown_extensions.extensions.markdown_checklist', 'markdown_extensions.extensions.superscript', 'markdown_extensions.extensions.subscript', 'markdown_extensions.extensions.mathjax']
@@ -108,6 +108,10 @@ class RemarkableWindow(Window):
         # Initialize file manager with window and text buffer
         self.file_manager = FileManager(self.window, self.text_buffer)
         self.file_manager.set_recent_files_callback(self.add_recent_file)
+        
+        # Initialize style manager
+        self.style_manager = StyleManager(self.settings_manager, self.media_path)
+        self.style_manager.add_style_change_callback(self.on_style_changed)
 
         self.live_preview = WebKit2.WebView()
 
@@ -220,8 +224,6 @@ class RemarkableWindow(Window):
 
 
     def load_settings(self):
-        self.custom_css = self.settings_manager.get_custom_css()
-
         if self.settings_manager.is_nightmode_enabled():
             # Enable night/dark mode on startup
             self.builder.get_object("menuitem_night_mode").set_active(True)
@@ -264,42 +266,14 @@ class RemarkableWindow(Window):
         except:
             pass # Loading font failed --> leave at default font
             
-        # Try to load the previously chosen style. May fail if so, ignore
-        try:
-            self.style = self.settings_manager.get_style()
-            if self.style == "dark":
-                styles.set(styles.dark)
-            elif self.style == "foghorn":
-                styles.set(styles.foghorn)
-            elif self.style == "github":
-                styles.set(styles.github)
-            elif self.style == "handwriting_css":
-                styles.set(styles.handwriting_css)
-            elif self.style == "markdown":
-                styles.set(styles.markdown)
-            elif self.style == "metro_vibes":
-                styles.set(styles.metro_vibes)
-            elif self.style == "metro_vibes_dark":
-                styles.set(styles.metro_vibes_dark)
-            elif self.style == "modern_css":
-                styles.set(styles.modern_css)
-            elif self.style == "screen":
-                styles.set(styles.screen)
-            elif self.style == "solarized_dark":
-                styles.set(styles.solarized_dark)
-            elif self.style == "solarized_light":
-                styles.set(styles.solarized_light)
-            elif self.style == "custom":
-                styles.set(styles.custom_css)
-            else:
-                print("Style key error")
-
-            self.update_style(self)
-            self.update_live_preview(self)
-        except:
-            print("Couldn't choose previously selected style")
+        # Load the previously chosen style through StyleManager
+        # This is handled automatically by StyleManager initialization
 
         self.wrap_box.set_visible(False)
+    
+    def on_style_changed(self):
+        """Callback when style changes - update live preview"""
+        self.update_live_preview(self)
 
     def scrollPreviewToFix(self, widget):
         self.scrolledwindow_live_preview.get_vadjustment().disconnect(self.lp_scrolled_fix)
@@ -355,7 +329,6 @@ class RemarkableWindow(Window):
         self.on_menuitem_swap_activate(None)
 
         styles.rtl(enabled)
-        self.update_style(self)
         self.update_live_preview(self)
 
     def on_menuitem_export_html_activate(self, widget):
@@ -370,7 +343,7 @@ class RemarkableWindow(Window):
                 html_middle = markdown.markdown(text, extensions =self.safe_extensions)
             except:
                 html_middle = markdown.markdown(text)
-        html = self.default_html_start + html_middle + self.default_html_end
+        html = self.style_manager.get_html_head_style() + html_middle + self.default_html_end
         self.save_html(html)
 
     def on_menuitem_export_html_plain_activate(self, widget):
@@ -430,7 +403,7 @@ class RemarkableWindow(Window):
                 html_middle = markdown.markdown(text, self.safe_extensions)
             except:
                 html_middle = markdown.markdown(text)
-        html = self.default_html_start + html_middle + self.default_html_end
+        html = self.style_manager.get_html_head_style() + html_middle + self.default_html_end
         self.save_pdf(html)
 
     def on_menuitem_export_pdf_plain_activate(self, widget):
@@ -821,7 +794,7 @@ class RemarkableWindow(Window):
                 html_middle = markdown.markdown(text, extensions =self.safe_extensions)
             except:
                 html_middle = markdown.markdown(text)
-        html = self.default_html_start + html_middle + self.default_html_end
+        html = self.style_manager.get_html_head_style() + html_middle + self.default_html_end
         tf.write(html.encode())
         tf.flush()
         
@@ -1066,110 +1039,44 @@ class RemarkableWindow(Window):
         self.emoji_picker.show()
 
 
-    # Styles
-    def update_style(self, widget):
-        self.default_html_start = '<!doctype HTML><html><head><meta charset="utf-8"><title>Made with reRemarkable!</title><link rel="stylesheet" href="' + self.media_path + 'highlightjs.default.min.css">'
-        self.default_html_start += "<style type='text/css'>" + styles.get() + "</style>"
-        self.default_html_start += "</head><body>"
 
     def on_menuitem_dark_activate(self, widget):
-        styles.set(styles.dark)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'dark')
+        self.style_manager.apply_dark_style()
 
     def on_menuitem_foghorn_activate(self, widget):
-        styles.set(styles.foghorn)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'foghorn')
+        self.style_manager.apply_foghorn_style()
 
     def on_menuitem_github_activate(self, widget):
-        styles.set(styles.github)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'github')
+        self.style_manager.apply_github_style()
 
     def on_menuitem_handwritten_activate(self, widget):
-        styles.set(styles.handwriting_css)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'handwriting_css')
+        self.style_manager.apply_handwriting_style()
 
     def on_menuitem_markdown_activate(self, widget):
-        styles.set(styles.markdown)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'markdown')
+        self.style_manager.apply_markdown_style()
 
     def on_menuitem_metro_vibes_activate(self, widget):
-        styles.set(styles.metro_vibes)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'metro_vibes')
+        self.style_manager.apply_metro_vibes_style()
 
     def on_menuitem_metro_vibes_dark_activate(self, widget):
-        styles.set(styles.metro_vibes_dark)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'metro_vibes_dark')
+        self.style_manager.apply_metro_vibes_dark_style()
 
 
     def on_menuitem_modern_activate(self, widget):
-        styles.set(styles.modern_css)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'modern_css')
+        self.style_manager.apply_modern_style()
 
     def on_menuitem_screen_activate(self, widget):
-        styles.set(styles.screen)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'screen')
+        self.style_manager.apply_screen_style()
     
     def on_menuitem_solarized_dark_activate(self, widget):
-        styles.set(styles.solarized_dark)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'solarized_dark')
+        self.style_manager.apply_solarized_dark_style()
 
     def on_menuitem_solarized_light_activate(self, widget):
-        styles.set(styles.solarized_light)
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'solarized_light')
+        self.style_manager.apply_solarized_light_style()
 
     # Custom CSS
     def on_menuitem_custom_activate(self, widget):
-        self.custom_window = Gtk.Window()
-        self.custom_window.set_default_size(640, 480)
-        self.custom_window.set_position(Gtk.WindowPosition.CENTER)
-        self.custom_window.set_title("Custom CSS")
-
-        self.custom_vbox = Gtk.VBox()
-        self.custom_scroller = Gtk.ScrolledWindow()
-        self.custom_button = Gtk.Button("Apply")
-        self.custom_vbox.pack_end(self.custom_button, False, False, 0)
-        self.custom_text_view = Gtk.TextView()
-        self.custom_text_buffer = Gtk.TextBuffer()
-        self.custom_text_buffer.set_text(self.custom_css)
-        self.custom_text_view.set_buffer(self.custom_text_buffer)
-        self.custom_scroller.add(self.custom_text_view)
-        self.custom_vbox.pack_start(self.custom_scroller, True, True, 0)
-        self.custom_window.add(self.custom_vbox)
-        self.custom_window.show_all()
-        self.custom_button.connect("clicked", self.apply_custom_css, self.custom_window, self.custom_text_buffer)
-
-    def apply_custom_css(self, widget, window, tb):
-        start, end = tb.get_bounds()
-        self.custom_css = tb.get_text(start, end, False).replace("'", '"')
-        styles.set(self.custom_css)
-        self.settings_manager.set_setting('css', styles.get())
-        window.hide()
-        self.update_style(self)
-        self.update_live_preview(self)
-        self.settings_manager.set_setting('style', 'custom')
-    ## End Custom CSS
+        self.style_manager.apply_custom_style_dialog(self.window)
 
     def on_menuitem_github_page_activate(self, widget):
         webbrowser.open_new_tab("https://github.com/pjobson/reRemarkable")
@@ -1289,7 +1196,7 @@ class RemarkableWindow(Window):
                     text,
                     disable_raw_html=False
                 )
-        html = self.default_html_start + html_middle + self.default_html_end
+        html = self.style_manager.get_html_head_style() + html_middle + self.default_html_end
 
         # Update the display, supporting relative paths to local images
         current_path = self.file_manager.get_current_file_path()
