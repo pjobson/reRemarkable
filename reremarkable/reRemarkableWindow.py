@@ -26,6 +26,7 @@ from FileManager import FileManager
 from StyleManager import StyleManager
 from LayoutManager import LayoutManager
 from RecentFilesManager import RecentFilesManager
+from ExportManager import ExportManager
 
 
 import logging
@@ -38,7 +39,7 @@ from reremarkable_lib import Window, reremarkableconfig
 from AboutReRemarkableDialog import AboutReRemarkableDialog
 from EmojiPickerDialog import EmojiPickerDialog
 
-app_version = 1.9 # reRemarkable app version
+app_version = 2.2 # reRemarkable app version
 
 class RemarkableWindow(Window):
     __gtype_name__ = "RemarkableWindow"
@@ -68,8 +69,10 @@ class RemarkableWindow(Window):
         # Initialize layout manager
         self.layout_manager = None
 
+        # HTML footer with scripts for live preview
         self.default_html_end = '<script src="' + self.media_path + 'highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/javascript">MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});</script></body></html>'
-
+        
+        # Markdown extensions (used by live preview and other features)
         self.default_extensions = ['markdown.extensions.extra','markdown.extensions.toc', 'markdown.extensions.smarty', 'markdown_extensions.extensions.urlize', 'markdown_extensions.extensions.Highlighting', 'markdown_extensions.extensions.Strikethrough', 'markdown_extensions.extensions.markdown_checklist', 'markdown_extensions.extensions.superscript', 'markdown_extensions.extensions.subscript', 'markdown_extensions.extensions.mathjax']
         self.safe_extensions = ['markdown.extensions.extra']
         self.pdf_error_warning = False
@@ -107,9 +110,16 @@ class RemarkableWindow(Window):
         self.file_manager = FileManager(self.window, self.text_buffer)
         self.file_manager.set_recent_files_callback(self.recent_files_manager.add_recent_file)
         
+        # Initialize export manager
+        self.export_manager = ExportManager(self.style_manager, self.file_manager, self.media_path)
+        self.export_manager.set_window_sensitivity_callback(self.window.set_sensitive)
+        
         # Initialize style manager
         self.style_manager = StyleManager(self.settings_manager, self.media_path)
         self.style_manager.add_style_change_callback(self.on_style_changed)
+        
+        # Initialize export manager (will be set up after file_manager is available)
+        self.export_manager = None
         
         # Initialize layout manager (will be set up after UI components are created)
         self.layout_manager = None
@@ -343,140 +353,18 @@ class RemarkableWindow(Window):
         self.update_live_preview(self)
 
     def on_menuitem_export_html_activate(self, widget):
-        self.window.set_sensitive(False)
-        start, end = self.text_buffer.get_bounds()
-        text = self.text_buffer.get_text(start, end, False)
-        text = self.text_buffer.get_text(self.text_buffer.get_start_iter(), self.text_buffer.get_end_iter(), False)
-        try:
-            html_middle = markdown.markdown(text, self.default_extensions)
-        except:
-            try:
-                html_middle = markdown.markdown(text, extensions =self.safe_extensions)
-            except:
-                html_middle = markdown.markdown(text)
-        html = self.style_manager.get_html_head_style() + html_middle + self.default_html_end
-        self.save_html(html)
+        self.export_manager.export_html_styled(self.text_buffer, self.window)
 
     def on_menuitem_export_html_plain_activate(self, widget):
-        # This can be re-factored. A lot of duplicated code. Migrate some functions to external .py files
-        self.window.set_sensitive(False)
-        start, end = self.text_buffer.get_bounds()
-        text = self.text_buffer.get_text(start, end, False)
-        text = self.text_buffer.get_text(self.text_buffer.get_start_iter(), self.text_buffer.get_end_iter(), False)
-        try:
-            html_middle = markdown.markdown(text, self.default_extensions)
-        except:
-            try:
-                html_middle = markdown.markdown(text, extensions =self.safe_extensions)
-            except:
-                html_middle = markdown.markdown(text)
-        html = html_middle
-        self.save_html(html)
+        self.export_manager.export_html_plain(self.text_buffer, self.window)
 
-    def save_html(self, data):
-        html = data
-        chooser = Gtk.FileChooserDialog("Export HTML", None, Gtk.FileChooserAction.SAVE,
-                                        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                                         Gtk.STOCK_OK, Gtk.ResponseType.OK))
-        self.set_file_chooser_path(chooser)
-        html_filter = Gtk.FileFilter()
-        html_filter.set_name("HTML Files")
-        html_filter.add_pattern("*.html")
-        html_filter.add_pattern("*.htm")
-        chooser.set_do_overwrite_confirmation(True)
-        chooser.add_filter(html_filter)
-        response = chooser.run()
-        if response == Gtk.ResponseType.OK:
-            file_name = chooser.get_filename()
-            if not file_name.endswith(".html"):
-                file_name += ".html"
-            file = open(file_name, 'w')
-            soup = BeautifulSoup(html, "lxml")
-            
-            file.write(soup.prettify())
-            file.close()
-        elif response == Gtk.ResponseType.CANCEL:
-            pass
-        chooser.destroy()
-        self.window.set_sensitive(True)
 
     def on_menuitem_export_pdf_activate(self, widget):
-        self.window.set_sensitive(False)
-        start, end = self.text_buffer.get_bounds()
-        text = self.text_buffer.get_text(start, end, False)
-        text = self.text_buffer.get_text(self.text_buffer.get_start_iter(), self.text_buffer.get_end_iter(), False)
-        dirname = os.path.dirname(self.file_manager.get_current_file_path())
-        text = re.sub(r'(\!\[.*?\]\()([^/][^:]*?\))', lambda m, dirname=dirname: m.group(1) + os.path.join(dirname, m.group(2)), text)
-        try:
-            html_middle = markdown.markdown(text, self.default_extensions)
-        except:
-            try:
-                html_middle = markdown.markdown(text, self.safe_extensions)
-            except:
-                html_middle = markdown.markdown(text)
-        html = self.style_manager.get_html_head_style() + html_middle + self.default_html_end
-        self.save_pdf(html)
+        self.export_manager.export_pdf_styled(self.text_buffer, self.window)
 
     def on_menuitem_export_pdf_plain_activate(self, widget):
-        self.window.set_sensitive(False)
-        start, end = self.text_buffer.get_bounds()
-        text = self.text_buffer.get_text(start, end, False)
-        text = self.text_buffer.get_text(self.text_buffer.get_start_iter(), self.text_buffer.get_end_iter(), False)
-        try:
-            html_middle = markdown.markdown(text, self.default_extensions)
-        except:
-            try:
-                html_middle = markdown.markdown(text, self.safe_extensions)
-            except:
-                html_middle = markdown.markdown(text)
-        html = html_middle
-        self.save_pdf(html)
+        self.export_manager.export_pdf_plain(self.text_buffer, self.window)
         
-    def save_pdf(self, html):
-        chooser = Gtk.FileChooserDialog("Export PDF", None, Gtk.FileChooserAction.SAVE,
-                                        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                                         Gtk.STOCK_OK, Gtk.ResponseType.OK))
-        self.set_file_chooser_path(chooser)
-        pdf_filter = Gtk.FileFilter()
-        pdf_filter.add_pattern("*.pdf")
-        pdf_filter.set_name("PDF Files")
-        chooser.add_filter(pdf_filter)
-        chooser.set_do_overwrite_confirmation(True)
-        response = chooser.run()
-        if response == Gtk.ResponseType.OK:
-            file_name = chooser.get_filename()
-            if not file_name.endswith(".pdf"):
-                file_name += ".pdf"
-            try:
-                pdfkit.from_string(html, file_name, options= {'quiet': '', 'page-size': 'Letter',
-                    'margin-top': '0.75in',
-                    'margin-right': '0.75in',
-                    'margin-bottom': '0.75in',
-                    'margin-left': '0.75in',
-                    'encoding': "UTF-8",
-                    'javascript-delay' : '550',
-                    'no-outline': None})
-            except:
-                try:
-                    # Failed so try with no options
-                    pdfkit.from_string(html, file_name)
-                except:
-                    # Pdf Export failed, show warning message
-                    if not self.pdf_error_warning:
-                        self.pdf_error_warning = True
-                        print("\nreRemarkable Error:\tPDF Export Failed!!")
-
-                    pdf_fail_dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.ERROR,
-                            Gtk.ButtonsType.CANCEL, "PDF EXPORT FAILED")
-                    pdf_fail_dialog.format_secondary_text(
-                            "File export to PDF was unsuccessful.")
-                    pdf_fail_dialog.run()
-                    pdf_fail_dialog.destroy()
-        elif response == Gtk.ResponseType.CANCEL:
-            pass
-
-        chooser.destroy()
-        self.window.set_sensitive(True)
 
 
     def on_menuitem_quit_activate(self, widget):
