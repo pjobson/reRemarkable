@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-08-18
+
+### Added
+- Window layout persistence - saves window size, position, maximized state, and paned positions
+- All user configurations now stored in ~/.config/reremarkable/ following XDG Base Directory specification
+- Configuration files migrated to JSON format for better maintainability
+- Recent files functionality with JSON storage
+- Module-level style attributes for backward compatibility
+
+### Changed
+- CSS architecture completely restructured from hardcoded strings to external .css files
+- Styles now loaded dynamically from individual CSS files in data/media/css/
+- Custom CSS file moved to ~/.config/reremarkable/custom.css for user customization
+- Modernized all Python code with f-strings, proper exception handling, and modern practices
+- Cleaned up markdown extensions for compatibility with current Python/Markdown versions
+- Updated configuration system to use JSON instead of Python dictionaries
+- Improved styles module with caching and proper error handling
+- Set version to 2.0 to reflect major architecture changes and rebranding
+
+### Fixed
+- AttributeError with styles.metro_vibes module attribute access
+- Styles.set() function now handles both CSS content and style names
+- Markdown extension compatibility issues with newer Python versions
+- Pattern registration updated for current Markdown API
+- All import errors and method signature mismatches resolved
+
+### Removed
+- Hardcoded CSS strings from styles.py
+- Old configuration file formats
+- Deprecated markdown extension patterns
+
 ## 2025-08-17
 
 ### Changed
