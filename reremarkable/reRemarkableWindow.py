@@ -22,6 +22,7 @@ import warnings
 from findBar import FindBar
 from SettingsManager import SettingsManager
 from MarkdownFormatter import MarkdownFormatter
+from FileManager import FileManager
 
 
 import logging
@@ -53,7 +54,6 @@ class RemarkableWindow(Window):
         self.editor_position = 0
         self.homeDir = os.environ['HOME']
         self.media_path = reremarkableconfig.get_data_path() + os.path.sep + "media" + os.path.sep
-        self.name = "Untitled" # Title of the current file, set to 'Untitled' as default
 
         # Initialize settings manager
         self.settings_manager = SettingsManager(self.homeDir)
@@ -61,6 +61,8 @@ class RemarkableWindow(Window):
         
         # Initialize markdown formatter (will be set after text_buffer is created)
         self.markdown_formatter = None
+        # Initialize file manager (will be set after text_buffer is created)
+        self.file_manager = None
 
         self.default_html_start = '<!doctype HTML><html><head><meta charset="utf-8"><title>Made with reRemarkable!</title><link rel="stylesheet" href="' + self.media_path + 'highlightjs.default.min.css">'
         self.default_html_start += "<style type='text/css'>" + styles.get() + "</style>"
@@ -102,6 +104,10 @@ class RemarkableWindow(Window):
         
         # Initialize markdown formatter with the text buffer
         self.markdown_formatter = MarkdownFormatter(self.text_buffer)
+        
+        # Initialize file manager with window and text buffer
+        self.file_manager = FileManager(self.window, self.text_buffer)
+        self.file_manager.set_recent_files_callback(self.add_recent_file)
 
         self.live_preview = WebKit2.WebView()
 
@@ -143,18 +149,10 @@ class RemarkableWindow(Window):
 
         # Check if filename has been specified in terminal command
         if len(sys.argv) > 1:
-            self.name = sys.argv[1]
-            title = self.name.split("/")[-1]
-            self.window.set_title("reRemarkable: " + title)
-            try:
-                with open(sys.argv[1], 'r') as temp:
-                    text = temp.read()
-                    self.text_buffer.set_text(text)
-                    self.text_buffer.set_modified(False)
-                    # Add to recent files when opening from command line
-                    self.add_recent_file(sys.argv[1])
-            except:
-                print(self.name + " does not exist, creating it")
+            file_path = sys.argv[1]
+            if not self.file_manager.load_file(file_path, self.window.set_title):
+                print(f"{file_path} does not exist, creating it")
+                self.file_manager.set_current_file_path(file_path)
 
         self.update_status_bar(self)
         self.update_live_preview(self)
@@ -326,142 +324,27 @@ class RemarkableWindow(Window):
         self.markdown_formatter.apply_numbered_list()
 
     def on_menuitem_new_activate(self, widget):
-        self.new(self)
+        self.file_manager.new_file()
 
     def on_toolbutton_new_clicked(self, widget):
-        self.new(self)
-
-    """
-        Launches a new instance of reRemarkable
-    """
-    def new(self, widget):
-        subprocess.Popen(sys.argv[0])
+        self.file_manager.new_file()
 
     def on_menuitem_open_activate(self, widget):
-        self.open(self)
+        self.file_manager.open_file_dialog(self.window.set_title)
 
     def on_toolbutton_open_clicked(self, widget):
-        self.open(self)
-
-    """
-        Opens a file for editing / viewing
-    """
-    def open(self, widget):
-        start, end = self.text_buffer.get_bounds()
-        text = self.text_buffer.get_text(start, end, False)
-        
-        self.window.set_sensitive(False)
-        chooser = Gtk.FileChooserDialog(title="Open File", action=Gtk.FileChooserAction.OPEN, buttons=(
-            Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
-        self.set_file_chooser_path(chooser)
-        response = chooser.run()
-
-        if response == Gtk.ResponseType.OK:
-            # The user has selected a file
-            selected_file = chooser.get_filename()
-            
-            if len(text) == 0 and not self.text_buffer.get_modified():
-                # Current file is empty. Load contents of selected file into this view
-                self.load_file(selected_file)
-            else:
-                # A file is already open. Load the selected file in a new Remarkable process
-                subprocess.Popen([sys.argv[0], selected_file])
-        
-        elif response == Gtk.ResponseType.CANCEL:
-            # The user has clicked cancel
-            pass
-
-        chooser.destroy()
-        self.window.set_sensitive(True)
+        self.file_manager.open_file_dialog(self.window.set_title)
     
-    def load_file(self, file_path):
-        """Load a file into the editor"""
-        try:
-            self.text_buffer.begin_not_undoable_action()
-            with open(file_path, 'r') as file:
-                text = file.read()
-            self.name = file_path
-            self.text_buffer.set_text(text)
-            title = file_path.split("/")[-1]
-            self.window.set_title("reRemarkable: " + title)
-            self.text_buffer.set_modified(False)
-            self.text_buffer.end_not_undoable_action()
-            # Add to recent files when loading
-            self.add_recent_file(file_path)
-        except Exception as e:
-            logger.error(f"Error loading file {file_path}: {e}")
-            print(f"Error loading file: {e}")
 
-    def check_for_save(self, widget):
-        reply = False
-        if self.text_buffer.get_modified():
-            message = "Do you want to save the changes you have made?"
-            dialog = Gtk.MessageDialog(self.window,
-                                       Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                       Gtk.MessageType.QUESTION, Gtk.ButtonsType.YES_NO,
-                                       message)
-            dialog.set_title("Save?")
-            dialog.set_default_response(Gtk.ResponseType.YES)
-
-            if dialog.run() == Gtk.ResponseType.NO:
-                reply = False
-            else:
-                reply = True
-            dialog.destroy()
-        return reply
 
     def on_menuitem_save_activate(self, widget):
-        self.save(self)
+        self.file_manager.save_file(self.window.set_title)
 
     def on_toolbutton_save_clicked(self, widget):
-        self.save(self)
+        self.file_manager.save_file(self.window.set_title)
 
-    def save(self, widget):
-        if self.name != "Untitled":
-            file = open(self.name, 'w')
-            text = self.text_buffer.get_text(self.text_buffer.get_start_iter(), self.text_buffer.get_end_iter(), False)
-            file.write(text)
-            file.close()
-            title = self.name.split("/")[-1]
-            self.text_buffer.set_modified(False)
-            self.window.set_title("reRemarkable: " + title)
-            # Add to recent files when saving
-            self.add_recent_file(self.name)
-            return True
-        else:
-            return self.save_as(self)
-
-    def on_menuitem_save_as_activate(self, widget, crap = ""):
-        self.save_as(self)
-
-    def save_as(self, widget):
-        self.window.set_sensitive(False)
-        chooser = Gtk.FileChooserDialog(title=None, action=Gtk.FileChooserAction.SAVE, buttons=(
-            Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
-        self.set_file_chooser_path(chooser)
-        chooser.set_do_overwrite_confirmation(True)
-        title = self.name.split("/")[-1]
-        chooser.set_title("Save As: " + title)
-        response = chooser.run()
-        
-        saved = True
-
-        if response == Gtk.ResponseType.OK:
-            file = open(chooser.get_filename(), 'w')
-            self.name = chooser.get_filename()
-            text = self.text_buffer.get_text(self.text_buffer.get_start_iter(), self.text_buffer.get_end_iter(), False)
-            file.write(text)
-            file.close()
-            self.text_buffer.set_modified(False)
-            title = self.name.split("/")[-1]
-            self.window.set_title("reRemarkable: " + title)
-            # Add to recent files when saving as
-            self.add_recent_file(self.name)
-        else:
-            saved = False # User cancelled saving after choosing to save. Need to cancel quit operation now
-        chooser.destroy()
-        self.window.set_sensitive(True)
-        return saved
+    def on_menuitem_save_as_activate(self, widget, crap=""):
+        self.file_manager.save_file_as(self.window.set_title)
 
     def on_menuitem_rtl_toggled(self, widget):
         self.rtl(widget.get_active())
@@ -538,7 +421,7 @@ class RemarkableWindow(Window):
         start, end = self.text_buffer.get_bounds()
         text = self.text_buffer.get_text(start, end, False)
         text = self.text_buffer.get_text(self.text_buffer.get_start_iter(), self.text_buffer.get_end_iter(), False)
-        dirname = os.path.dirname(self.name)
+        dirname = os.path.dirname(self.file_manager.get_current_file_path())
         text = re.sub(r'(\!\[.*?\]\()([^/][^:]*?\))', lambda m, dirname=dirname: m.group(1) + os.path.join(dirname, m.group(2)), text)
         try:
             html_middle = markdown.markdown(text, self.default_extensions)
@@ -617,21 +500,14 @@ class RemarkableWindow(Window):
         self.window_delete_event(self)
 
     def window_delete_event(self, widget, callback=None):
-        start, end = self.text_buffer.get_bounds()
-        text = self.text_buffer.get_text(start, end, False)
-
-        safe_to_quit = True # Keep track if user cancelled save operation
-
-        if len(text) > 0:
-            if self.check_for_save(None):
-                safe_to_quit = self.save(self)
+        safe_to_quit = self.file_manager.can_close_safely(self.window.set_title)
         
         if safe_to_quit:
             # Save window layout before quitting
             self.save_window_layout()
             self.quit_requested(None)
         else:
-            return True # Cancel the quit operation as user didn't saving the changes
+            return True # Cancel the quit operation as user didn't want to save the changes
 
     def quit_requested(self, widget, callback_data=None):
         self.clean_up() # Second time, just to be safe
@@ -705,12 +581,12 @@ class RemarkableWindow(Window):
             self.text_buffer.insert_at_cursor(text)
         elif image != None:
             image_rel_path = 'imgs'
-            if self.name == 'Untitled':
+            if self.file_manager.get_current_file_path() == 'Untitled':
                 # File not yet saved (i.e. we do not have path for the file)
-                self.save(widget)
-                assert self.name != 'Untitled'
+                self.file_manager.save_file(self.window.set_title)
+                assert self.file_manager.get_current_file_path() != 'Untitled'
 
-            image_dir = os.path.join(os.path.dirname(self.name), image_rel_path)
+            image_dir = os.path.join(os.path.dirname(self.file_manager.get_current_file_path()), image_rel_path)
             image_fname = datetime.datetime.now().strftime('%Y%m%d-%H%M%S.png')
             image_path = os.path.join(image_dir, image_fname)
             text = '![](%s/%s)' % (image_rel_path, image_fname)
@@ -936,7 +812,7 @@ class RemarkableWindow(Window):
         tf_name = tf.name
 
         text = self.text_buffer.get_text(self.text_buffer.get_start_iter(), self.text_buffer.get_end_iter(), False)
-        dirname = os.path.dirname(self.name)
+        dirname = os.path.dirname(self.file_manager.get_current_file_path())
         text = re.sub(r'(\!\[.*?\]\()([^/][^:]*?\))', lambda m, dirname=dirname: m.group(1) + os.path.join(dirname, m.group(2)), text)
         try:
             html_middle = markdown.markdown(text, self.default_extensions)
@@ -1416,7 +1292,12 @@ class RemarkableWindow(Window):
         html = self.default_html_start + html_middle + self.default_html_end
 
         # Update the display, supporting relative paths to local images
-        self.live_preview.load_html(html, "file://{}".format(os.path.abspath(self.name)))
+        current_path = self.file_manager.get_current_file_path()
+        if current_path != "Untitled":
+            base_uri = "file://{}".format(os.path.abspath(current_path))
+        else:
+            base_uri = None
+        self.live_preview.load_html(html, base_uri)
 
     """
         This function suppresses the messages from the WebKit (live preview) console
@@ -1435,8 +1316,6 @@ class RemarkableWindow(Window):
             del self.temp_file_list[0]
             i -= 1
 
-    def set_file_chooser_path(self, chooser):
-        chooser.set_current_folder(os.path.dirname(self.name))
 
     """
         Window layout persistence functionality
@@ -1597,7 +1476,7 @@ class RemarkableWindow(Window):
     def open_recent_file(self, menuitem, file_path):
         """Open a recent file"""
         if os.path.exists(file_path):
-            self.load_file(file_path)
+            self.file_manager.load_file(file_path, self.window.set_title)
         else:
             # File no longer exists, remove from recent files
             if file_path in self.recent_files:
