@@ -7,7 +7,7 @@ Version information for reRemarkable
 This file contains the single source of truth for the application version.
 """
 
-__version__ = '2.2'
+__version__ = '2.3'
 __license__ = 'MIT'
 
 def get_version():
