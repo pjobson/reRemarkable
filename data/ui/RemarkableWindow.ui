@@ -177,6 +177,22 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem" id="menuitem_print_preview">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Print the preview pane content</property>
+                        <property name="label" translatable="yes">Print...</property>
+                        <property name="use_underline">True</property>
+                        <accelerator key="p" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="menuitem_file_separator_print">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkMenuItem" id="menuitem_export_html_plain">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
