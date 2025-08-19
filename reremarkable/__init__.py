@@ -29,5 +29,4 @@ def main():
     window = reRemarkableWindow.RemarkableWindow()
 
     window.show_all()
-    window.check_settings() # Load settings after app displayed to fix bugs!
     Gtk.main()
