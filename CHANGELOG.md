@@ -2,7 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
-## 2025-08-18 (Updated)
+## 2025-08-19 (Updated)
+
+### Added
+- Enhanced Save dialog with Cancel, Don't Save, and Save options
+- Print preview functionality for the preview pane using WebKit2
+
+### Changed
+- Version updated to 2.2
+- Save confirmation dialog now includes Cancel option to prevent unwanted quitting
+- Improved error handling throughout the application
+
+### Fixed
+- AttributeError issues with uninitialized variables in scroll handling
+- Run script errors and package detection issues
+
+## 2025-08-18
 
 ### Added
 - Pure HTML support in markdown rendering - raw HTML content is now preserved and rendered
