@@ -11,7 +11,6 @@
     <property name="icon">reremarkable.png</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">reRemarkable</property>
-    <property name="version">1.9</property>
     <property name="copyright" translatable="yes">Copyright (C) 2025 Paul Jobson &lt;pjobson@gmail.com&gt;</property>
     <property name="website">https://github.com/pjobson/reRemarkable</property>
     <property name="website_label" translatable="yes">reRemarkable</property>
