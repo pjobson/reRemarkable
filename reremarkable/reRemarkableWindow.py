@@ -367,8 +367,77 @@ class RemarkableWindow(Window):
 
     def on_menuitem_export_pdf_plain_activate(self, widget):
         self.export_manager.export_pdf_plain(self.text_buffer, self.window)
-        
 
+    def on_menuitem_print_preview_activate(self, widget):
+        """Print the content of the preview pane using WebKit2's built-in print functionality"""
+        if self.live_preview.get_visible():
+            try:
+                # Use WebKit2's native print functionality which handles web content properly
+                print_operation = WebKit2.PrintOperation.new(self.live_preview)
+                print_operation.run_dialog(self.window)
+            except Exception as e:
+                logger.error(f"WebKit2 print operation error: {e}")
+                # Fallback to standard GTK print operation
+                self._fallback_print_preview()
+        else:
+            dialog = Gtk.MessageDialog(
+                self.window, 0, Gtk.MessageType.WARNING,
+                Gtk.ButtonsType.OK, "Preview Not Visible"
+            )
+            dialog.format_secondary_text("Please enable live preview first to print.")
+            dialog.run()
+            dialog.destroy()
+    
+    def _fallback_print_preview(self):
+        """Fallback print method using standard GTK PrintOperation"""
+        print_operation = Gtk.PrintOperation()
+        print_operation.set_embed_page_setup(True)
+        
+        # Set up print operation callbacks
+        print_operation.connect("begin-print", self._on_print_begin)
+        print_operation.connect("draw-page", self._on_print_draw_page)
+        
+        try:
+            result = print_operation.run(Gtk.PrintOperationAction.PRINT_DIALOG, self.window)
+            if result == Gtk.PrintOperationResult.ERROR:
+                logger.error("Print operation failed")
+        except Exception as e:
+            logger.error(f"Print operation error: {e}")
+            dialog = Gtk.MessageDialog(
+                self.window, 0, Gtk.MessageType.ERROR,
+                Gtk.ButtonsType.OK, "Print Error"
+            )
+            dialog.format_secondary_text("Failed to print preview content.")
+            dialog.run()
+            dialog.destroy()
+    
+    def _on_print_begin(self, operation, context):
+        """Called when print operation begins"""
+        operation.set_n_pages(1)
+    
+    def _on_print_draw_page(self, operation, context, page_num):
+        """Called to draw each page during printing"""
+        cairo_context = context.get_cairo_context()
+        
+        # Get the WebView's content and render it for printing
+        width = context.get_width()
+        height = context.get_height()
+        
+        # Get WebView dimensions
+        webview_width = self.live_preview.get_allocated_width()
+        webview_height = self.live_preview.get_allocated_height()
+        
+        if webview_width > 0 and webview_height > 0:
+            # Scale the WebView content to fit the page while maintaining aspect ratio
+            scale_x = width / webview_width
+            scale_y = height / webview_height
+            scale = min(scale_x, scale_y)
+            
+            cairo_context.scale(scale, scale)
+            
+            # Draw the WebView content
+            self.live_preview.draw(cairo_context)
+        
 
     def on_menuitem_quit_activate(self, widget):
         self.clean_up()
