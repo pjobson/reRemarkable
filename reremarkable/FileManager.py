@@ -61,26 +61,41 @@ class FileManager:
     def show_save_confirmation_dialog(self):
         """
         Show save confirmation dialog when there are unsaved changes.
-        Returns True if user wants to save, False otherwise.
+        
+        Returns:
+            'save' if user wants to save
+            'dont_save' if user wants to continue without saving  
+            'cancel' if user wants to cancel the operation
         """
         if not self.is_buffer_modified():
-            return False
+            return 'dont_save'
             
         message = "Do you want to save the changes you have made?"
         dialog = Gtk.MessageDialog(
             self.window,
             Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
             Gtk.MessageType.QUESTION, 
-            Gtk.ButtonsType.YES_NO,
+            Gtk.ButtonsType.NONE,  # No default buttons, we'll add custom ones
             message
         )
+        
+        # Add custom buttons in the right order
+        dialog.add_button("Cancel", Gtk.ResponseType.CANCEL)
+        dialog.add_button("Don't Save", Gtk.ResponseType.NO)
+        dialog.add_button("Save", Gtk.ResponseType.YES)
+        
         dialog.set_title("Save?")
         dialog.set_default_response(Gtk.ResponseType.YES)
 
         response = dialog.run()
         dialog.destroy()
         
-        return response == Gtk.ResponseType.YES
+        if response == Gtk.ResponseType.YES:
+            return 'save'
+        elif response == Gtk.ResponseType.NO:
+            return 'dont_save'
+        else:  # CANCEL or dialog closed
+            return 'cancel'
     
     def load_file(self, file_path, title_callback=None):
         """
@@ -299,8 +314,20 @@ class FileManager:
         Returns:
             True if safe to close, False if user cancelled
         """
-        if not self.is_buffer_empty() and self.show_save_confirmation_dialog():
-            return self.save_file(title_callback)
+        if not self.is_buffer_empty():
+            response = self.show_save_confirmation_dialog()
+            
+            if response == 'save':
+                # User wants to save - attempt to save the file
+                return self.save_file(title_callback)
+            elif response == 'dont_save':
+                # User doesn't want to save - proceed with closing
+                return True
+            else:  # response == 'cancel'
+                # User cancelled - don't close
+                return False
+        
+        # No unsaved changes - safe to close
         return True
     
     def _show_error_dialog(self, title, message):
