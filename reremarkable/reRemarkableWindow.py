@@ -113,16 +113,13 @@ class RemarkableWindow(Window):
         self.file_manager = FileManager(self.window, self.text_buffer)
         self.file_manager.set_recent_files_callback(self.recent_files_manager.add_recent_file)
         
-        # Initialize export manager
-        self.export_manager = ExportManager(self.style_manager, self.file_manager, self.media_path)
-        self.export_manager.set_window_sensitivity_callback(self.window.set_sensitive)
-        
-        # Initialize style manager
+        # Initialize style manager first (needed by export manager)
         self.style_manager = StyleManager(self.settings_manager, self.media_path)
         self.style_manager.add_style_change_callback(self.on_style_changed)
         
-        # Initialize export manager (will be set up after file_manager is available)
-        self.export_manager = None
+        # Initialize export manager after style manager is available
+        self.export_manager = ExportManager(self.style_manager, self.file_manager, self.media_path)
+        self.export_manager.set_window_sensitivity_callback(self.window.set_sensitive)
         
         # Initialize layout manager (will be set up after UI components are created)
         self.layout_manager = None
