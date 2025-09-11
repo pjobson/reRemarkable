@@ -85,7 +85,9 @@ if [ -d "/opt/reRemarkable" ]; then
     print_warning "Removing existing installation in /opt/reRemarkable..."
     sudo rm -rf /opt/reRemarkable
 fi
-sudo cp -r "$reRemarkable" /opt/
+
+sudo mkdir -p /opt/reRemarkable
+sudo cp -r "$reRemarkable"/* /opt/reRemarkable/
 
 # Install desktop file
 print_status "Installing desktop application entry..."
