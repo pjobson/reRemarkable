@@ -65,19 +65,6 @@ print_status "Creating configuration directory..."
 mkdir -p ~/.config/reremarkable
 touch ~/.config/reremarkable/custom.css
 
-# Create virtual environment
-print_status "Creating Python virtual environment..."
-if [ -d "venv" ]; then
-    print_warning "Virtual environment already exists, removing old one..."
-    rm -rf venv
-fi
-python3 -m venv venv
-
-# Install Python dependencies
-print_status "Installing Python dependencies..."
-$PIP install --upgrade pip
-$PIP install -r requirements.txt
-
 # Install to /opt directory (requires sudo)
 print_status "Installing to /opt directory (requires sudo permissions)..."
 sudo mkdir -p /opt
@@ -89,16 +76,32 @@ fi
 sudo mkdir -p /opt/reRemarkable
 sudo cp -r "$reRemarkable"/* /opt/reRemarkable/
 
+# Create virtual environment
+print_status "Creating Python virtual environment..."
+if [ -d "/opt/reRemarkable/venv" ]; then
+    print_warning "Virtual environment already exists, removing old one..."
+    sudo rm -rf /opt/reRemarkable/venv
+fi
+
+sudo python3 -m venv /opt/reRemarkable/venv
+
+PIP=/opt/reRemarkable/venv/bin/pip
+
+# Install Python dependencies
+print_status "Installing Python dependencies..."
+sudo $PIP install --upgrade pip
+sudo $PIP install -r requirements.txt
+
 # Install desktop file
 print_status "Installing desktop application entry..."
 mkdir -p ~/.local/share/applications
-cp reremarkable.desktop ~/.local/share/applications/
+cp /opt/reRemarkable/reremarkable.desktop ~/.local/share/applications/
 
 # Install GSchema if gsettings is available
 if command -v gsettings &> /dev/null; then
     print_status "Installing GSchema..."
     sudo mkdir -p /usr/share/glib-2.0/schemas/
-    sudo cp data/glib-2.0/schemas/net.launchpad.reremarkable.gschema.xml /usr/share/glib-2.0/schemas/
+    sudo cp /opt/reRemarkable/data/glib-2.0/schemas/net.launchpad.reremarkable.gschema.xml /usr/share/glib-2.0/schemas/
     sudo glib-compile-schemas /usr/share/glib-2.0/schemas/
 else
     print_warning "gsettings not available, skipping GSchema installation"
