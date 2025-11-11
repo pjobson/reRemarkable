@@ -968,10 +968,6 @@ class RemarkableWindow(Window):
     def on_menuitem_solarized_light_activate(self, widget):
         self.style_manager.apply_solarized_light_style()
 
-    # Custom CSS
-    def on_menuitem_custom_activate(self, widget):
-        self.style_manager.apply_custom_style_dialog(self.window)
-
     def on_menuitem_github_page_activate(self, widget):
         webbrowser.open_new_tab("https://github.com/pjobson/reRemarkable")
     
