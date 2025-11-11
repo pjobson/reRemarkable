@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-11-11
+
+### Added
+- Visual checkmark (✓) indicator next to currently selected style in Style menu
+- GitHub Dark and GitHub Light style options using github-markdown-dark.css and github-markdown-light.css
+- Ruff Python linter integration with pre-push git hook
+- pyproject.toml configuration file for Ruff linter settings
+
+### Changed
+- Version updated to 2.4
+- All CSS style sheets now properly formatted with /**** filename ***/ headers
+- Enabled all 13 available CSS styles (previously only 1 was active)
+- Fixed StyleManager initialization order to prevent live_preview attribute errors
+- Style menu items now show visual text marker instead of checkbox widgets
+
+### Fixed
+- Custom CSS feature completely removed (code, UI elements, settings, install script references)
+- Style change callbacks no longer throw errors due to initialization order issues
+- Style naming consistency between styles.py and StyleManager.py (handwriting/modern naming fixed)
+
+### Development
+- Added Ruff to requirements.txt
+- Configured per-file linting rules for legacy code and third-party libraries
+- Pre-push hook prevents commits with linting errors
+- Auto-fixed 118 code style issues (trailing whitespace, import sorting, f-string conversions)
+
 ## 2025-08-19 (Updated)
 
 ### Added
