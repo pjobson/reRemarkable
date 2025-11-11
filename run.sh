@@ -1,5 +1,6 @@
-#!/bin/bash
-foldername=/opt/reRemarkable
+#!/usr/bin/env bash
+
+foldername=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 PYTHON="$foldername/venv/bin/python3"
 PIP="$foldername/venv/bin/pip"
