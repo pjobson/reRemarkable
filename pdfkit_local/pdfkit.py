@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
+import codecs
+import io
 import re
 import subprocess
 import sys
-from .source import Source
-from .configuration import Configuration
 from itertools import chain
-import io
-import codecs
+
+from .configuration import Configuration
+from .source import Source
 
 
-class PDFKit(object):
+class PDFKit:
     """
     Main class that does all generation routine.
 
@@ -106,7 +106,7 @@ class PDFKit(object):
         stdout, stderr = result.communicate(input=input)
 
         if 'Error' in stderr.decode('utf-8'):
-            raise IOError('wkhtmltopdf reported an error:\n' + stderr.decode('utf-8'))
+            raise OSError('wkhtmltopdf reported an error:\n' + stderr.decode('utf-8'))
 
         # Since wkhtmltopdf sends its output to stderr we will capture it
         # and properly send to stdout
@@ -121,14 +121,13 @@ class PDFKit(object):
                     # read 4 bytes to get PDF signature '%PDF'
                     text = f.read(4)
                     if text == '':
-                        raise IOError('Command failed: %s\n'
+                        raise OSError('Command failed: {}\n'
                                       'Check whhtmltopdf output without \'quiet\' '
-                                      'option' % ' '.join(args))
+                                      'option'.format(' '.join(args)))
                     return True
-            except IOError:
-                raise IOError('Command failed: %s\n'
-                              'Check whhtmltopdf output without \'quiet\' option' %
-                              ' '.join(args))
+            except OSError:
+                raise OSError('Command failed: {}\n'
+                              'Check whhtmltopdf output without \'quiet\' option'.format(' '.join(args)))
 
     def _normalize_options(self, options):
         """Updates a dict of config options to make then usable on command line
@@ -142,8 +141,8 @@ class PDFKit(object):
         normalized_options = {}
 
         for key, value in list(options.items()):
-            if not '--' in key:
-                normalized_key = '--%s' % self._normalize_arg(key)
+            if '--' not in key:
+                normalized_key = f'--{self._normalize_arg(key)}'
             else:
                 normalized_key = self._normalize_arg(key)
             normalized_options[normalized_key] = str(value) if value else value
@@ -154,7 +153,7 @@ class PDFKit(object):
         return arg.lower()
 
     def _style_tag_for(self, stylesheet):
-        return "<style>%s</style>" % stylesheet
+        return f"<style>{stylesheet}</style>"
 
     def _prepend_css(self, path):
         if self.source.isUrl() or isinstance(self.source.source, list):
@@ -193,9 +192,8 @@ class PDFKit(object):
         found = {}
 
         for x in re.findall('<meta [^>]*>', content):
-            if re.search('name=["\']%s' % self.configuration.meta_tag_prefix, x):
-                name = re.findall('name=["\']%s([^"\']*)' %
-                                  self.configuration.meta_tag_prefix, x)[0]
+            if re.search(f'name=["\']{self.configuration.meta_tag_prefix}', x):
+                name = re.findall(f'name=["\']{self.configuration.meta_tag_prefix}([^"\']*)', x)[0]
                 found[name] = re.findall('content=["\']([^"\']*)', x)[0]
 
         return found

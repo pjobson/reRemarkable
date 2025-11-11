@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from .pdfkit import PDFKit
-from .pdfkit import Configuration
+from .pdfkit import Configuration, PDFKit
 
 
 def from_url(url, output_path, options=None, toc=None, cover=None, configuration=None):

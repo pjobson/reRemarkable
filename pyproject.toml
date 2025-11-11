@@ -1,0 +1,44 @@
+[tool.ruff]
+# Exclude common directories
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+]
+
+# Set line length to 120
+line-length = 120
+
+# Target Python 3.8+
+target-version = "py38"
+
+[tool.ruff.lint]
+# Enable specific rule sets
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+]
+
+# Ignore specific rules
+ignore = [
+    "E501",  # line too long (handled by line-length)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Ignore unused imports in __init__.py files
+"markdown_extensions/**/*.py" = ["N802", "E722"]  # Ignore naming and bare except in markdown extensions
+"reremarkable_lib/**/*.py" = ["N999", "E402", "N801", "N818", "E722"]  # Ignore module naming and bare except in lib
+"pdfkit_local/**/*.py" = ["N802", "E722", "B904", "E701"]  # Ignore naming, bare except, and style issues in pdfkit
+"reremarkable/undobuffer.py" = ["N806"]  # Ignore uppercase variable names in undobuffer
+"reremarkable/reRemarkableWindow.py" = ["E722", "E402", "N802", "N806"]  # Ignore bare except, imports, and naming in main window
+"reremarkable/FileManager.py" = ["E722", "N806"]  # Ignore bare except and variable naming
+"reremarkable/*.py" = ["N999", "E402", "E722", "F402", "B904"]  # Ignore module naming, imports, bare except, and shadowing

@@ -1,14 +1,13 @@
-# -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
+
+import logging
 
 import styles
-from gi.repository import Gtk
-import logging
 
 logger = logging.getLogger('reremarkable')
 
 class StyleManager:
     """Handles style management for the markdown editor"""
-    
+
     # Available style mappings
     STYLE_MAPPINGS = {
         'dark': lambda: styles.dark,
@@ -25,7 +24,7 @@ class StyleManager:
         'solarized_dark': lambda: styles.solarized_dark,
         'solarized_light': lambda: styles.solarized_light
     }
-    
+
     def __init__(self, settings_manager, media_path):
         self.settings_manager = settings_manager
         self.media_path = media_path
@@ -36,11 +35,11 @@ class StyleManager:
 
         # Load current style from settings
         self.load_current_style()
-    
+
     def add_style_change_callback(self, callback):
         """Add a callback to be called when style changes"""
         self.style_change_callbacks.append(callback)
-    
+
     def _notify_style_change(self):
         """Notify all callbacks of style change"""
         for callback in self.style_change_callbacks:
@@ -48,12 +47,12 @@ class StyleManager:
                 callback()
             except Exception as e:
                 logger.error(f"Error in style change callback: {e}")
-    
+
     def load_current_style(self):
         """Load the current style from settings"""
         self.current_style = self.settings_manager.get_style()
         self.apply_current_style()
-    
+
     def apply_current_style(self):
         """Apply the currently selected style"""
         if self.current_style in self.STYLE_MAPPINGS:
@@ -63,7 +62,7 @@ class StyleManager:
             # Fallback to github style
             styles.set(styles.github)
             self.current_style = "github"
-    
+
     def set_style(self, style_name):
         """
         Set a predefined style
@@ -81,11 +80,11 @@ class StyleManager:
         self.update_visual_markers()  # Update visual markers when style changes
         self._notify_style_change()
         return True
-    
+
     def get_current_style(self):
         """Get the current style name"""
         return self.current_style
-    
+
     def get_html_head_style(self):
         """Get the HTML head style section for preview"""
         html_start = (
@@ -96,7 +95,7 @@ class StyleManager:
             '</head><body>'
         )
         return html_start
-    
+
     def get_available_styles(self):
         """Get list of available predefined styles"""
         return list(self.STYLE_MAPPINGS.keys())
@@ -145,16 +144,16 @@ class StyleManager:
             else:
                 # Remove marker from other styles
                 menu_item.set_label(original_label)
-    
+
     # Convenience methods for specific styles
     def apply_dark_style(self):
         """Apply dark style"""
         return self.set_style('dark')
-    
+
     def apply_foghorn_style(self):
         """Apply foghorn style"""
         return self.set_style('foghorn')
-    
+
     def apply_github_style(self):
         """Apply github style"""
         return self.set_style('github')
@@ -170,31 +169,31 @@ class StyleManager:
     def apply_handwriting_style(self):
         """Apply handwriting style"""
         return self.set_style('handwriting')
-    
+
     def apply_markdown_style(self):
         """Apply markdown style"""
         return self.set_style('markdown')
-    
+
     def apply_metro_vibes_style(self):
         """Apply metro vibes style"""
         return self.set_style('metro_vibes')
-    
+
     def apply_metro_vibes_dark_style(self):
         """Apply metro vibes dark style"""
         return self.set_style('metro_vibes_dark')
-    
+
     def apply_modern_style(self):
         """Apply modern style"""
         return self.set_style('modern')
-    
+
     def apply_screen_style(self):
         """Apply screen style"""
         return self.set_style('screen')
-    
+
     def apply_solarized_dark_style(self):
         """Apply solarized dark style"""
         return self.set_style('solarized_dark')
-    
+
     def apply_solarized_light_style(self):
         """Apply solarized light style"""
         return self.set_style('solarized_light')

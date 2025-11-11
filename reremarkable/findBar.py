@@ -14,11 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GtkSource # pylint: disable=E0611
-from gi.repository import Gdk
+from gi.repository import (
+    Gdk,
+    GtkSource,  # pylint: disable=E0611
+)
 
 
-class FindBar(object):
+class FindBar:
     def __init__(self, widget, wrap_box, find_entry, replace_entry,
                  match_case, whole_word, regex):
         self.widget = widget

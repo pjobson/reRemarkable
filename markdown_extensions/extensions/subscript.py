@@ -18,7 +18,7 @@ within paragraphs will not.
 """
 
 import markdown
-from markdown.util import etree, AtomicString
+from markdown.util import AtomicString, etree
 
 # Global Vars
 SUBSCRIPT_RE = r'(\~)([^\~]*)\2'  # the number is subscript~2~
@@ -27,9 +27,9 @@ class SubscriptPattern(markdown.inlinepatterns.Pattern):
     """ Return a subscript Element: `C~6~H~12~O~6~' """
     def handleMatch(self, m):
         subsc = m.group(3)
-        
+
         text = subsc
-        
+
         el = etree.Element("sub")
         el.text = AtomicString(text)
         return el
@@ -41,7 +41,9 @@ class SubscriptExtension(markdown.Extension):
         """ Replace subscript with SubscriptPattern """
         md.inlinePatterns['subscript'] = SubscriptPattern(SUBSCRIPT_RE, md)
 
-def makeExtension(configs=[]):
+def makeExtension(configs=None):
+    if configs is None:
+        configs = []
     return SubscriptExtension(configs=configs)
 
 if __name__ == "__main__":

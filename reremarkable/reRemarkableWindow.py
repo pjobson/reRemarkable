@@ -1,55 +1,52 @@
 #!usr/bin/python3
-# -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 
 import gi
+
 gi.require_version('Gtk', '3.0')
 gi.require_version('GtkSource', '3.0')
 gi.require_version('WebKit2', '4.1')
 
-from bs4 import BeautifulSoup
-from gi.repository import Gdk, GLib, Gtk, GtkSource, Pango, WebKit2
-from locale import gettext as _
-from urllib.request import urlopen
-import markdown
-import os
-import sys
-import pdfkit_local as pdfkit
-import re, subprocess, datetime, os, webbrowser, _thread, sys, locale
-import tempfile
-import traceback
-import styles
-import unicodedata
-import warnings
-from findBar import FindBar
-from SettingsManager import SettingsManager
-from MarkdownFormatter import MarkdownFormatter
-from FileManager import FileManager
-from StyleManager import StyleManager
-from LayoutManager import LayoutManager
-from RecentFilesManager import RecentFilesManager
-from ExportManager import ExportManager
-
-
+import datetime
 import logging
+import os
+import re
+import sys
+import tempfile
+import warnings
+import webbrowser
+from urllib.request import urlopen
+
+import markdown
+import styles
+from ExportManager import ExportManager
+from FileManager import FileManager
+from findBar import FindBar
+from gi.repository import Gdk, Gtk, GtkSource, Pango, WebKit2
+from LayoutManager import LayoutManager
+from MarkdownFormatter import MarkdownFormatter
+from RecentFilesManager import RecentFilesManager
+from SettingsManager import SettingsManager
+from StyleManager import StyleManager
+
 logger = logging.getLogger('reremarkable')
 
 # Ignore warnings re. scroll handler (temp. fix) && starting GTK warning
 warnings.filterwarnings("ignore", ".*has no handler with id.*")
 
-from reremarkable_lib import Window, reremarkableconfig
 from AboutReRemarkableDialog import AboutReRemarkableDialog
 from EmojiPickerDialog import EmojiPickerDialog
 
+from reremarkable_lib import Window, reremarkableconfig
+
 # Import version from centralized version file
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from version import __version__ as app_version
 
 class RemarkableWindow(Window):
     __gtype_name__ = "RemarkableWindow"
-    
+
     def finish_initializing(self, builder): # pylint: disable=E1002
         """Set up the main window"""
-        super(RemarkableWindow, self).finish_initializing(builder)
+        super().finish_initializing(builder)
 
         self.AboutDialog = AboutReRemarkableDialog
         self.emoji_picker = None
@@ -62,7 +59,7 @@ class RemarkableWindow(Window):
         # Initialize settings manager
         self.settings_manager = SettingsManager(self.homeDir)
         self.settings_manager.check_settings()
-        
+
         # Initialize markdown formatter (will be set after text_buffer is created)
         self.markdown_formatter = None
         # Initialize file manager (will be set after text_buffer is created)
@@ -74,12 +71,12 @@ class RemarkableWindow(Window):
 
         # HTML footer with scripts for live preview
         self.default_html_end = '<script src="' + self.media_path + 'highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/javascript">MathJax.Hub.Config({"showProcessingMessages" : false,"messageStyle" : "none","tex2jax": { inlineMath: [ [ "$", "$" ] ] }});</script></body></html>'
-        
+
         # Markdown extensions (used by live preview and other features)
         self.default_extensions = ['markdown.extensions.extra','markdown.extensions.toc', 'markdown.extensions.smarty', 'markdown_extensions.extensions.urlize', 'markdown_extensions.extensions.Highlighting', 'markdown_extensions.extensions.Strikethrough', 'markdown_extensions.extensions.markdown_checklist', 'markdown_extensions.extensions.superscript', 'markdown_extensions.extensions.subscript', 'markdown_extensions.extensions.mathjax']
         self.safe_extensions = ['markdown.extensions.extra']
         self.pdf_error_warning = False
-        
+
         # Initialize recent files manager
         self.recent_files_manager = RecentFilesManager(max_recent_files=10)
 
@@ -91,12 +88,12 @@ class RemarkableWindow(Window):
         self.text_view = GtkSource.View.new_with_buffer(self.text_buffer)
         self.text_view.set_show_line_numbers(True)
         self.text_view.set_auto_indent(True)
-        
+
         # Force the SourceView to use a SourceBuffer and not a TextBuffer
         self.lang_manager = GtkSource.LanguageManager()
         self.text_buffer.set_language(self.lang_manager.get_language('markdown'))
         self.text_buffer.set_highlight_matching_brackets(True)
-        
+
         self.undo_manager = self.text_buffer.get_undo_manager()
         self.undo_manager.connect("can-undo-changed", self.can_undo_changed)
         self.undo_manager.connect("can-redo-changed", self.can_redo_changed)
@@ -105,14 +102,14 @@ class RemarkableWindow(Window):
         self.text_view.set_buffer(self.text_buffer)
         self.text_view.set_wrap_mode(Gtk.WrapMode.WORD)
         self.text_view.connect('key-press-event', self.cursor_ctrl_arrow_rtl_fix)
-        
+
         # Initialize markdown formatter with the text buffer
         self.markdown_formatter = MarkdownFormatter(self.text_buffer)
-        
+
         # Initialize file manager with window and text buffer
         self.file_manager = FileManager(self.window, self.text_buffer)
         self.file_manager.set_recent_files_callback(self.recent_files_manager.add_recent_file)
-        
+
         # Initialize export manager (placeholder, will be set up after style_manager)
         self.export_manager = None
 
@@ -165,7 +162,6 @@ class RemarkableWindow(Window):
         self.update_status_bar(self)
         self.update_live_preview(self)
 
-        text = ""
 
         self.wrap_box = self.builder.get_object("wrap_box")
         self.find_entry = self.builder.get_object("find_entry")
@@ -195,7 +191,7 @@ class RemarkableWindow(Window):
         self.load_settings()
 
         self.text_view.grab_focus()
-        
+
         # Initialize recent files menu
         recent_files_menu = self.builder.get_object("recent_files_menu")
         if hasattr(self, 'accel_group'):
@@ -203,11 +199,11 @@ class RemarkableWindow(Window):
         else:
             self.accel_group = Gtk.AccelGroup()
             self.window.add_accel_group(self.accel_group)
-        
+
         # Set up recent files manager with menu and callback
         self.recent_files_manager.set_menu_and_accel_group(recent_files_menu, self.accel_group)
         self.recent_files_manager.set_file_open_callback(lambda file_path: self.file_manager.load_file(file_path, self.window.set_title))
-        
+
         # Load window layout
         self.layout_manager.load_window_layout()
 
@@ -274,12 +270,12 @@ class RemarkableWindow(Window):
 
         # Apply statusbar setting
         self.layout_manager.apply_statusbar_setting(lambda: self.update_status_bar(self))
-                
+
         if not self.settings_manager.is_line_numbers_enabled():
             # Hide line numbers on startup
             self.builder.get_object("menuitem_line_numbers").set_active(False)
             self.layout_manager.toggle_line_numbers()
-            
+
         # Apply vertical layout setting
         self.layout_manager.apply_vertical_layout_setting()
 
@@ -294,12 +290,12 @@ class RemarkableWindow(Window):
             self.text_view.override_font(Pango.FontDescription(self.font))
         except:
             pass # Loading font failed --> leave at default font
-            
+
         # Load the previously chosen style through StyleManager
         # This is handled automatically by StyleManager initialization
 
         self.wrap_box.set_visible(False)
-    
+
     def on_style_changed(self):
         """Callback when style changes - update live preview"""
         self.update_live_preview(self)
@@ -337,7 +333,7 @@ class RemarkableWindow(Window):
 
     def on_toolbutton_open_clicked(self, widget):
         self.file_manager.open_file_dialog(self.window.set_title)
-    
+
 
 
     def on_menuitem_save_activate(self, widget):
@@ -392,16 +388,16 @@ class RemarkableWindow(Window):
             dialog.format_secondary_text("Please enable live preview first to print.")
             dialog.run()
             dialog.destroy()
-    
+
     def _fallback_print_preview(self):
         """Fallback print method using standard GTK PrintOperation"""
         print_operation = Gtk.PrintOperation()
         print_operation.set_embed_page_setup(True)
-        
+
         # Set up print operation callbacks
         print_operation.connect("begin-print", self._on_print_begin)
         print_operation.connect("draw-page", self._on_print_draw_page)
-        
+
         try:
             result = print_operation.run(Gtk.PrintOperationAction.PRINT_DIALOG, self.window)
             if result == Gtk.PrintOperationResult.ERROR:
@@ -415,34 +411,34 @@ class RemarkableWindow(Window):
             dialog.format_secondary_text("Failed to print preview content.")
             dialog.run()
             dialog.destroy()
-    
+
     def _on_print_begin(self, operation, context):
         """Called when print operation begins"""
         operation.set_n_pages(1)
-    
+
     def _on_print_draw_page(self, operation, context, page_num):
         """Called to draw each page during printing"""
         cairo_context = context.get_cairo_context()
-        
+
         # Get the WebView's content and render it for printing
         width = context.get_width()
         height = context.get_height()
-        
+
         # Get WebView dimensions
         webview_width = self.live_preview.get_allocated_width()
         webview_height = self.live_preview.get_allocated_height()
-        
+
         if webview_width > 0 and webview_height > 0:
             # Scale the WebView content to fit the page while maintaining aspect ratio
             scale_x = width / webview_width
             scale_y = height / webview_height
             scale = min(scale_x, scale_y)
-            
+
             cairo_context.scale(scale, scale)
-            
+
             # Draw the WebView content
             self.live_preview.draw(cairo_context)
-        
+
 
     def on_menuitem_quit_activate(self, widget):
         self.clean_up()
@@ -450,7 +446,7 @@ class RemarkableWindow(Window):
 
     def window_delete_event(self, widget, callback=None):
         safe_to_quit = self.file_manager.can_close_safely(self.window.set_title)
-        
+
         if safe_to_quit:
             # Save window layout before quitting
             self.layout_manager.save_window_layout()
@@ -519,12 +515,12 @@ class RemarkableWindow(Window):
     def on_menuitem_paste_activate(self, widget):
         text = self.clipboard.wait_for_text()
         image = self.clipboard.wait_for_image()
-        if text != None:
+        if text is not None:
             if self.text_buffer.get_has_selection():
                 start, end = self.text_buffer.get_selection_bounds()
                 self.text_buffer.delete(start, end)
             self.text_buffer.insert_at_cursor(text)
-        elif image != None:
+        elif image is not None:
             image_rel_path = 'imgs'
             if self.file_manager.get_current_file_path() == 'Untitled':
                 # File not yet saved (i.e. we do not have path for the file)
@@ -534,7 +530,7 @@ class RemarkableWindow(Window):
             image_dir = os.path.join(os.path.dirname(self.file_manager.get_current_file_path()), image_rel_path)
             image_fname = datetime.datetime.now().strftime('%Y%m%d-%H%M%S.png')
             image_path = os.path.join(image_dir, image_fname)
-            text = '![](%s/%s)' % (image_rel_path, image_fname)
+            text = f'![]({image_rel_path}/{image_fname})'
 
             if not os.path.exists(image_dir):
                 os.makedirs(image_dir)
@@ -569,12 +565,12 @@ class RemarkableWindow(Window):
             text = text.upper()
             self.text_buffer.delete(start, end)
             self.text_buffer.insert_at_cursor(text)
-            
+
     def on_menuitem_join_lines_activate(self, widget):
         if self.text_buffer.get_has_selection():
             start, end = self.text_buffer.get_selection_bounds()
             self.text_buffer.join_lines(start, end)
-        
+
     def on_menuitem_sort_lines_activate(self, widget):
         if self.text_buffer.get_has_selection():
             # Sort the selected lines
@@ -594,7 +590,7 @@ class RemarkableWindow(Window):
             # No selection active, sort all lines in reverse
             start, end = self.text_buffer.get_bounds()
             self.text_buffer.sort_lines(start, end, GtkSource.SortFlags.REVERSE_ORDER, 0)
-    
+
     # Copy all text from the editor pane and format it as HTML in the clipboard
     def on_menuitem_copy_all_activate(self, widget):
         text = self.text_buffer.get_text(self.text_buffer.get_start_iter(), self.text_buffer.get_end_iter(), False)
@@ -602,9 +598,9 @@ class RemarkableWindow(Window):
             text = markdown.markdown(text, self.default_extensions)
         except:
             try:
-                html_middle = markdown.markdown(text, extensions = self.safe_extensions)
+                markdown.markdown(text, extensions = self.safe_extensions)
             except:
-                html_middle = markdown.markdown(text)
+                markdown.markdown(text)
         self.clipboard.set_text(text, -1)
 
     # Copy selected text from the editor pane and format as HTML in the clipboard
@@ -616,9 +612,9 @@ class RemarkableWindow(Window):
                 text = markdown.markdown(text, self.default_extensions)
             except:
                 try:
-                    html_middle = markdown.markdown(text, extensions =self.safe_extensions)
+                    markdown.markdown(text, extensions =self.safe_extensions)
                 except:
-                    html_middle = markdown.markdown(text)
+                    markdown.markdown(text)
             self.clipboard.set_text(text, -1)
 
     def on_menuitem_vertical_layout_activate(self, widget):
@@ -636,7 +632,7 @@ class RemarkableWindow(Window):
         active = self.builder.get_object("menuitem_line_numbers").get_active()
         self.settings_manager.set_setting('line-numbers', active)
         self.layout_manager.toggle_line_numbers()
-            
+
     def on_menuitem_live_preview_activate(self, widget):
         self.layout_manager.toggle_live_preview(lambda: self.update_live_preview(self))
 
@@ -703,7 +699,7 @@ class RemarkableWindow(Window):
         html = self.style_manager.get_html_head_style() + html_middle + self.default_html_end
         tf.write(html.encode())
         tf.flush()
-        
+
         # Load the temporary HTML file in the user's default browser
         webbrowser.open_new_tab(tf_name)
 
@@ -812,7 +808,7 @@ class RemarkableWindow(Window):
         self.insert_window_table.add(vbox)
         self.insert_window_table.show_all()
         button.connect("clicked", self.insert_table_cmd, self.insert_window_table)
-    
+
     def insert_table_cmd(self, widget, window):
         # if self.entry_url_i.get_text():
         n_rows = self.entry_n_rows.get_text()
@@ -827,7 +823,7 @@ class RemarkableWindow(Window):
                 n_columns = int(n_columns)
             except:
                 return
-                
+
             if n_rows > 0 and n_columns > 0:
                 table_str = ""
                 line = ("|  "  * n_columns) + "|"
@@ -836,7 +832,7 @@ class RemarkableWindow(Window):
                 table_str = line + "\n" + header_line + "\n"
                 if n_rows > 1:
                     n_rows -= 1
-                    while n_rows > 0:                     
+                    while n_rows > 0:
                         table_str += line + "\n"
                         n_rows -= 1
 
@@ -972,7 +968,7 @@ class RemarkableWindow(Window):
 
     def on_menuitem_screen_activate(self, widget):
         self.style_manager.apply_screen_style()
-    
+
     def on_menuitem_solarized_dark_activate(self, widget):
         self.style_manager.apply_solarized_dark_style()
 
@@ -981,7 +977,7 @@ class RemarkableWindow(Window):
 
     def on_menuitem_github_page_activate(self, widget):
         webbrowser.open_new_tab("https://github.com/pjobson/reRemarkable")
-    
+
     def on_menuitem_reportbug_activate(self, widget):
         webbrowser.open_new_tab("https://github.com/pjobson/reRemarkable/issues")
 
@@ -1013,7 +1009,7 @@ class RemarkableWindow(Window):
 
     def on_text_view_changed(self, widget):
         start, end = self.text_buffer.get_bounds()
-        
+
         if self.statusbar.get_visible():
             self.update_status_bar(self)
         else:  # statusbar not present, don't need to update/count words, etc.
@@ -1122,7 +1118,7 @@ class RemarkableWindow(Window):
         # Update the display, supporting relative paths to local images
         current_path = self.file_manager.get_current_file_path()
         if current_path != "Untitled":
-            base_uri = "file://{}".format(os.path.abspath(current_path))
+            base_uri = f"file://{os.path.abspath(current_path)}"
         else:
             base_uri = None
         self.live_preview.load_html(html, base_uri)
