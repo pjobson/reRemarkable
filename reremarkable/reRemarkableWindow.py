@@ -984,6 +984,26 @@ class RemarkableWindow(Window):
     def on_menuitem_markdown_tutorial_activate(self, widget):
         webbrowser.open_new_tab("https://daringfireball.net/projects/markdown/syntax")
 
+    def on_menuitem_license_activate(self, widget):
+        # Get the script's base directory
+        script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        license_path = os.path.join(script_dir, 'LICENSE.md')
+
+        # Check if LICENSE.md exists, if not download it
+        if not os.path.exists(license_path):
+            try:
+                license_url = 'https://raw.githubusercontent.com/pjobson/reRemarkable/master/LICENSE.md'
+                response = urlopen(license_url)
+                license_content = response.read().decode('utf-8')
+                with open(license_path, 'w') as f:
+                    f.write(license_content)
+            except Exception as e:
+                logger.error(f"Failed to download LICENSE.md: {e}")
+                return
+
+        # Open the LICENSE.md file using the existing file opening mechanism
+        self.file_manager.load_file(license_path, self.window.set_title)
+
     def on_text_view_changed(self, widget):
         start, end = self.text_buffer.get_bounds()
         
