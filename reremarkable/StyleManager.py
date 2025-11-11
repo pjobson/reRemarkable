@@ -14,6 +14,8 @@ class StyleManager:
         'dark': lambda: styles.dark,
         'foghorn': lambda: styles.foghorn,
         'github': lambda: styles.github,
+        'github_dark': lambda: styles.github_dark,
+        'github_light': lambda: styles.github_light,
         'handwriting': lambda: styles.handwriting,
         'markdown': lambda: styles.markdown,
         'metro_vibes': lambda: styles.metro_vibes,
@@ -111,6 +113,8 @@ class StyleManager:
             'menuitem_dark': ('dark', 'Dark'),
             'menuitem_foghorn': ('foghorn', 'Foghorn'),
             'menuitem_github': ('github', 'Github (Default)'),
+            'menuitem_github_dark': ('github_dark', 'GitHub Dark'),
+            'menuitem_github_light': ('github_light', 'GitHub Light'),
             'menuitem_handwritten': ('handwriting', 'Handwritten'),
             'menuitem_markdown': ('markdown', 'Markdown'),
             'menuitem_metro_vibes': ('metro_vibes', 'Metro Vibes'),
@@ -154,7 +158,15 @@ class StyleManager:
     def apply_github_style(self):
         """Apply github style"""
         return self.set_style('github')
-    
+
+    def apply_github_dark_style(self):
+        """Apply GitHub Dark style"""
+        return self.set_style('github_dark')
+
+    def apply_github_light_style(self):
+        """Apply GitHub Light style"""
+        return self.set_style('github_light')
+
     def apply_handwriting_style(self):
         """Apply handwriting style"""
         return self.set_style('handwriting')

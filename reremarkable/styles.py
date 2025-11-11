@@ -8,6 +8,8 @@ AVAILABLE_STYLES = {
     'dark': 'dark.css',
     'foghorn': 'foghorn.css',
     'github': 'github-markdown.css',
+    'github_dark': 'github-markdown-dark.css',
+    'github_light': 'github-markdown-light.css',
     'handwriting': 'handwriting.css',
     'markdown': 'markdown.css',
     'metro_vibes': 'metro_vibes.css',
