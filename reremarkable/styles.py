@@ -6,8 +6,10 @@ from reremarkable_lib import reremarkableconfig
 # Available style names mapped to their CSS filenames
 AVAILABLE_STYLES = {
     'dark': 'dark.css',
-    'foghorn': 'foghorn.css', 
-    'github': 'github.css',
+    'foghorn': 'foghorn.css',
+    'github': 'github-markdown.css',
+    'github_dark': 'github-markdown-dark.css',
+    'github_light': 'github-markdown-light.css',
     'handwriting': 'handwriting.css',
     'markdown': 'markdown.css',
     'metro_vibes': 'metro_vibes.css',
@@ -16,7 +18,6 @@ AVAILABLE_STYLES = {
     'screen': 'screen.css',
     'solarized_dark': 'solarized_dark.css',
     'solarized_light': 'solarized_light.css',
-    'custom': 'custom.css',
 }
 
 # Github is the default style applied to the markdown
@@ -37,27 +38,23 @@ def _get_css_directory():
 
 def _load_css_file(style_name):
     """Load CSS content from file.
-    
+
     Args:
         style_name: Name of the style to load
-        
+
     Returns:
         CSS content as string, or empty string if file not found
     """
     if style_name not in AVAILABLE_STYLES:
         return ''
-        
+
     # Check cache first
     if style_name in __css_cache:
         return __css_cache[style_name]
-    
-    # Special handling for custom.css - it lives in the config directory
-    if style_name == 'custom':
-        css_file = os.path.expanduser('~/.config/reremarkable/custom.css')
-    else:
-        css_dir = _get_css_directory()
-        css_file = os.path.join(css_dir, AVAILABLE_STYLES[style_name])
-    
+
+    css_dir = _get_css_directory()
+    css_file = os.path.join(css_dir, AVAILABLE_STYLES[style_name])
+
     try:
         with open(css_file, 'r', encoding='utf-8') as f:
             css_content = f.read().strip()
@@ -127,29 +124,6 @@ def clear_cache():
     __css_cache.clear()
 
 
-def _ensure_custom_css():
-    """Ensure custom.css exists in the config directory."""
-    config_dir = os.path.expanduser('~/.config/reremarkable')
-    custom_css_path = os.path.join(config_dir, 'custom.css')
-    
-    # Create config directory if it doesn't exist
-    if not os.path.exists(config_dir):
-        try:
-            os.makedirs(config_dir, exist_ok=True)
-        except OSError as e:
-            print(f"Warning: Could not create config directory {config_dir}: {e}")
-            return
-    
-    # Create custom.css if it doesn't exist
-    if not os.path.exists(custom_css_path):
-        try:
-            with open(custom_css_path, 'w', encoding='utf-8') as f:
-                f.write('/**** custom.css ***/\n')
-                f.write('/* Custom CSS styles - edit this file to create your own theme */\n')
-        except OSError as e:
-            print(f"Warning: Could not create custom.css file {custom_css_path}: {e}")
-
-
 # Legacy function names for backward compatibility
 def set(style_input):
     """Legacy function: Set the current CSS style.
@@ -214,9 +188,6 @@ def _initialize_style_attributes():
         
         # Set the CSS content as a module attribute
         setattr(current_module, style_name, _load_css_file(style_name))
-
-# Ensure custom.css exists in config directory
-_ensure_custom_css()
 
 # Initialize style attributes on module import
 _initialize_style_attributes()

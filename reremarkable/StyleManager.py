@@ -14,11 +14,13 @@ class StyleManager:
         'dark': lambda: styles.dark,
         'foghorn': lambda: styles.foghorn,
         'github': lambda: styles.github,
-        'handwriting_css': lambda: styles.handwriting,
+        'github_dark': lambda: styles.github_dark,
+        'github_light': lambda: styles.github_light,
+        'handwriting': lambda: styles.handwriting,
         'markdown': lambda: styles.markdown,
         'metro_vibes': lambda: styles.metro_vibes,
         'metro_vibes_dark': lambda: styles.metro_vibes_dark,
-        'modern_css': lambda: styles.modern,
+        'modern': lambda: styles.modern,
         'screen': lambda: styles.screen,
         'solarized_dark': lambda: styles.solarized_dark,
         'solarized_light': lambda: styles.solarized_light
@@ -27,10 +29,11 @@ class StyleManager:
     def __init__(self, settings_manager, media_path):
         self.settings_manager = settings_manager
         self.media_path = media_path
-        self.custom_css = ""
         self.current_style = "github"  # Default style
         self.style_change_callbacks = []
-        
+        self.menu_items = {}  # Dictionary to store menu item references
+        self.menu_labels = {}  # Dictionary to store original menu item labels
+
         # Load current style from settings
         self.load_current_style()
     
@@ -48,15 +51,12 @@ class StyleManager:
     
     def load_current_style(self):
         """Load the current style from settings"""
-        self.custom_css = self.settings_manager.get_custom_css()
         self.current_style = self.settings_manager.get_style()
         self.apply_current_style()
     
     def apply_current_style(self):
         """Apply the currently selected style"""
-        if self.current_style == "custom":
-            styles.set(self.custom_css)
-        elif self.current_style in self.STYLE_MAPPINGS:
+        if self.current_style in self.STYLE_MAPPINGS:
             styles.set(self.STYLE_MAPPINGS[self.current_style]())
         else:
             logger.warning(f"Unknown style: {self.current_style}")
@@ -67,41 +67,24 @@ class StyleManager:
     def set_style(self, style_name):
         """
         Set a predefined style
-        
+
         Args:
             style_name: Name of the style to apply
         """
         if style_name not in self.STYLE_MAPPINGS:
             logger.error(f"Unknown style: {style_name}")
             return False
-        
+
         self.current_style = style_name
         styles.set(self.STYLE_MAPPINGS[style_name]())
         self.settings_manager.set_setting('style', style_name)
+        self.update_visual_markers()  # Update visual markers when style changes
         self._notify_style_change()
         return True
-    
-    def set_custom_style(self, css_content):
-        """
-        Set custom CSS style
-        
-        Args:
-            css_content: Custom CSS content
-        """
-        self.custom_css = css_content.replace("'", '"')
-        self.current_style = "custom"
-        styles.set(self.custom_css)
-        self.settings_manager.set_setting('css', self.custom_css)
-        self.settings_manager.set_setting('style', 'custom')
-        self._notify_style_change()
     
     def get_current_style(self):
         """Get the current style name"""
         return self.current_style
-    
-    def get_custom_css(self):
-        """Get the current custom CSS"""
-        return self.custom_css
     
     def get_html_head_style(self):
         """Get the HTML head style section for preview"""
@@ -117,55 +100,51 @@ class StyleManager:
     def get_available_styles(self):
         """Get list of available predefined styles"""
         return list(self.STYLE_MAPPINGS.keys())
-    
-    def show_custom_css_dialog(self, parent_window):
-        """
-        Show the custom CSS dialog
-        
-        Args:
-            parent_window: Parent window for the dialog
-        """
-        custom_window = Gtk.Window()
-        custom_window.set_default_size(640, 480)
-        custom_window.set_position(Gtk.WindowPosition.CENTER)
-        custom_window.set_title("Custom CSS")
-        custom_window.set_transient_for(parent_window)
-        custom_window.set_modal(True)
 
-        custom_vbox = Gtk.VBox()
-        custom_scroller = Gtk.ScrolledWindow()
-        custom_button = Gtk.Button("Apply")
-        custom_vbox.pack_end(custom_button, False, False, 0)
-        
-        custom_text_view = Gtk.TextView()
-        custom_text_view.set_wrap_mode(Gtk.WrapMode.WORD)
-        custom_text_view.set_left_margin(5)
-        custom_text_view.set_right_margin(5)
-        
-        custom_text_buffer = Gtk.TextBuffer()
-        custom_text_buffer.set_text(self.custom_css)
-        custom_text_view.set_buffer(custom_text_buffer)
-        
-        custom_scroller.add(custom_text_view)
-        custom_scroller.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        custom_vbox.pack_start(custom_scroller, True, True, 0)
-        custom_window.add(custom_vbox)
-        
-        def on_apply_clicked(widget):
-            start, end = custom_text_buffer.get_bounds()
-            css_content = custom_text_buffer.get_text(start, end, False)
-            self.set_custom_style(css_content)
-            custom_window.hide()
-        
-        def on_window_delete(widget, event):
-            custom_window.hide()
-            return True
-        
-        custom_button.connect("clicked", on_apply_clicked)
-        custom_window.connect("delete-event", on_window_delete)
-        
-        custom_window.show_all()
-        return custom_window
+    def set_menu_items(self, builder):
+        """
+        Store references to style menu items for visual marker management
+
+        Args:
+            builder: GTK builder object with menu items
+        """
+        # Map menu item IDs to their style names and labels
+        menu_item_map = {
+            'menuitem_dark': ('dark', 'Dark'),
+            'menuitem_foghorn': ('foghorn', 'Foghorn'),
+            'menuitem_github': ('github', 'Github (Default)'),
+            'menuitem_github_dark': ('github_dark', 'GitHub Dark'),
+            'menuitem_github_light': ('github_light', 'GitHub Light'),
+            'menuitem_handwritten': ('handwriting', 'Handwritten'),
+            'menuitem_markdown': ('markdown', 'Markdown'),
+            'menuitem_metro_vibes': ('metro_vibes', 'Metro Vibes'),
+            'menuitem_metro_vibes_dark': ('metro_vibes_dark', 'Metro Vibes Dark'),
+            'menuitem_modern': ('modern', 'Modern'),
+            'menuitem_screen': ('screen', 'Screen'),
+            'menuitem_solarized_dark': ('solarized_dark', 'Solarized Dark'),
+            'menuitem_solarized_light': ('solarized_light', 'Solarized Light')
+        }
+
+        # Get and store all menu item references and original labels
+        for menu_id, (style_name, label) in menu_item_map.items():
+            menu_item = builder.get_object(menu_id)
+            if menu_item:
+                self.menu_items[style_name] = menu_item
+                self.menu_labels[style_name] = label
+
+        # Update visual markers to match current style
+        self.update_visual_markers()
+
+    def update_visual_markers(self):
+        """Update visual ✓ markers on menu items to reflect current style"""
+        for style_name, menu_item in self.menu_items.items():
+            original_label = self.menu_labels.get(style_name, '')
+            if style_name == self.current_style:
+                # Add ✓ marker to the current style
+                menu_item.set_label(f"✓ {original_label}")
+            else:
+                # Remove marker from other styles
+                menu_item.set_label(original_label)
     
     # Convenience methods for specific styles
     def apply_dark_style(self):
@@ -179,10 +158,18 @@ class StyleManager:
     def apply_github_style(self):
         """Apply github style"""
         return self.set_style('github')
-    
+
+    def apply_github_dark_style(self):
+        """Apply GitHub Dark style"""
+        return self.set_style('github_dark')
+
+    def apply_github_light_style(self):
+        """Apply GitHub Light style"""
+        return self.set_style('github_light')
+
     def apply_handwriting_style(self):
         """Apply handwriting style"""
-        return self.set_style('handwriting_css')
+        return self.set_style('handwriting')
     
     def apply_markdown_style(self):
         """Apply markdown style"""
@@ -198,7 +185,7 @@ class StyleManager:
     
     def apply_modern_style(self):
         """Apply modern style"""
-        return self.set_style('modern_css')
+        return self.set_style('modern')
     
     def apply_screen_style(self):
         """Apply screen style"""
@@ -211,7 +198,3 @@ class StyleManager:
     def apply_solarized_light_style(self):
         """Apply solarized light style"""
         return self.set_style('solarized_light')
-    
-    def apply_custom_style_dialog(self, parent_window):
-        """Show custom CSS dialog and apply the style"""
-        return self.show_custom_css_dialog(parent_window)

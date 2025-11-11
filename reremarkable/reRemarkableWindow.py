@@ -113,17 +113,12 @@ class RemarkableWindow(Window):
         self.file_manager = FileManager(self.window, self.text_buffer)
         self.file_manager.set_recent_files_callback(self.recent_files_manager.add_recent_file)
         
-        # Initialize export manager
-        self.export_manager = ExportManager(self.style_manager, self.file_manager, self.media_path)
-        self.export_manager.set_window_sensitivity_callback(self.window.set_sensitive)
-        
-        # Initialize style manager
-        self.style_manager = StyleManager(self.settings_manager, self.media_path)
-        self.style_manager.add_style_change_callback(self.on_style_changed)
-        
-        # Initialize export manager (will be set up after file_manager is available)
+        # Initialize export manager (placeholder, will be set up after style_manager)
         self.export_manager = None
-        
+
+        # Initialize style manager (placeholder, will be set up after live_preview)
+        self.style_manager = None
+
         # Initialize layout manager (will be set up after UI components are created)
         self.layout_manager = None
 
@@ -155,6 +150,16 @@ class RemarkableWindow(Window):
             self.scrolledwindow_live_preview, self.text_view, self.toolbar,
             self.statusbar, self.builder
         )
+
+        # Initialize style manager now that live_preview exists
+        self.style_manager = StyleManager(self.settings_manager, self.media_path)
+        self.style_manager.add_style_change_callback(self.on_style_changed)
+        # Set up style menu items for checkmark management
+        self.style_manager.set_menu_items(self.builder)
+
+        # Initialize export manager now that style_manager exists
+        self.export_manager = ExportManager(self.style_manager, self.file_manager, self.media_path)
+        self.export_manager.set_window_sensitivity_callback(self.window.set_sensitive)
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         self.update_status_bar(self)
@@ -943,6 +948,12 @@ class RemarkableWindow(Window):
     def on_menuitem_github_activate(self, widget):
         self.style_manager.apply_github_style()
 
+    def on_menuitem_github_dark_activate(self, widget):
+        self.style_manager.apply_github_dark_style()
+
+    def on_menuitem_github_light_activate(self, widget):
+        self.style_manager.apply_github_light_style()
+
     def on_menuitem_handwritten_activate(self, widget):
         self.style_manager.apply_handwriting_style()
 
@@ -967,10 +978,6 @@ class RemarkableWindow(Window):
 
     def on_menuitem_solarized_light_activate(self, widget):
         self.style_manager.apply_solarized_light_style()
-
-    # Custom CSS
-    def on_menuitem_custom_activate(self, widget):
-        self.style_manager.apply_custom_style_dialog(self.window)
 
     def on_menuitem_github_page_activate(self, widget):
         webbrowser.open_new_tab("https://github.com/pjobson/reRemarkable")
