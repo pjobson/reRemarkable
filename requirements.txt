@@ -2,3 +2,4 @@ beautifulsoup4
 markdown
 pdfkit
 emoji
+ruff

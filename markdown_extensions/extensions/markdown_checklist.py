@@ -3,11 +3,12 @@
 import re
 
 from markdown.extensions import Extension
-from markdown.preprocessors import Preprocessor
 from markdown.postprocessors import Postprocessor
 
 
-def makeExtension(configs=[]):
+def makeExtension(configs=None):
+    if configs is None:
+        configs = []
     return ChecklistExtension(configs=configs)
 
 
@@ -34,5 +35,5 @@ class ChecklistPostprocessor(Postprocessor):
     def _convert_checkbox(self, match):
         state = match.group(1)
         checked = ' checked' if state != ' ' else ''
-        return '<li><input type="checkbox" disabled%s>' % checked
+        return f'<li><input type="checkbox" disabled{checked}>'
 
