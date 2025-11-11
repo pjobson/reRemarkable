@@ -948,6 +948,12 @@ class RemarkableWindow(Window):
     def on_menuitem_github_activate(self, widget):
         self.style_manager.apply_github_style()
 
+    def on_menuitem_github_dark_activate(self, widget):
+        self.style_manager.apply_github_dark_style()
+
+    def on_menuitem_github_light_activate(self, widget):
+        self.style_manager.apply_github_light_style()
+
     def on_menuitem_handwritten_activate(self, widget):
         self.style_manager.apply_handwriting_style()
 
