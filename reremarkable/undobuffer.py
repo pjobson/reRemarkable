@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding:utf-8 -*-
 
 """ Gtk textbuffer with undo functionality """
 
@@ -21,7 +20,8 @@
 
 from gi.repository import Gtk
 
-class UndoableInsert(object):
+
+class UndoableInsert:
     """something that has been inserted into our textbuffer"""
     def __init__(self, text_iter, text, length):
         self.offset = text_iter.get_offset()
@@ -32,7 +32,7 @@ class UndoableInsert(object):
         else:
             self.mergeable = True
 
-class UndoableDelete(object):
+class UndoableDelete:
     """something that has ben deleted from our textbuffer"""
     def __init__(self, text_buffer, start_iter, end_iter):
         self.text = text_buffer.get_text(start_iter, end_iter, True)
@@ -55,7 +55,7 @@ class UndoableBuffer(Gtk.TextBuffer):
 
     designed as a drop-in replacement for Gtksourceview,
     at least as far as undo is concerned"""
-    
+
     def __init__(self):
         """
         we'll need empty stacks for undo/redo and some state keeping
@@ -89,9 +89,9 @@ class UndoableBuffer(Gtk.TextBuffer):
                 return False
             elif cur.offset != (prev.offset + prev.length):
                 return False
-            elif cur.text in WHITESPACE and not prev.text in WHITESPACE:
+            elif cur.text in WHITESPACE and prev.text not in WHITESPACE:
                 return False
-            elif prev.text in WHITESPACE and not cur.text in WHITESPACE:
+            elif prev.text in WHITESPACE and cur.text not in WHITESPACE:
                 return False
             return True
 
@@ -116,7 +116,7 @@ class UndoableBuffer(Gtk.TextBuffer):
         else:
             self.undo_stack.append(prev_insert)
             self.undo_stack.append(undo_action)
-        
+
     def on_delete_range(self, text_buffer, start_iter, end_iter):
         def can_be_merged(prev, cur):
             """see if we can merge multiple deletions here
@@ -160,8 +160,7 @@ class UndoableBuffer(Gtk.TextBuffer):
                 prev_delete.text += undo_action.text
                 prev_delete.end += (undo_action.end - undo_action.start)
             else: # Backspace used
-                prev_delete.text = "%s%s" % (undo_action.text,
-                                                     prev_delete.text)
+                prev_delete.text = f"{undo_action.text}{prev_delete.text}"
                 prev_delete.start = undo_action.start
             self.undo_stack.append(prev_delete)
         else:
@@ -170,16 +169,16 @@ class UndoableBuffer(Gtk.TextBuffer):
 
     def begin_not_undoable_action(self):
         """don't record the next actions
-        
+
         toggles self.not_undoable_action"""
-        self.not_undoable_action = True        
+        self.not_undoable_action = True
 
     def end_not_undoable_action(self):
         """record next actions
-        
+
         toggles self.not_undoable_action"""
         self.not_undoable_action = False
-    
+
     def undo(self):
         """undo inserts or deletions
 

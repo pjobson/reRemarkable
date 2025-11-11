@@ -1,6 +1,7 @@
 """CSS style declarations for markdown rendering."""
 
 import os
+
 from reremarkable_lib import reremarkableconfig
 
 # Available style names mapped to their CSS filenames
@@ -56,18 +57,18 @@ def _load_css_file(style_name):
     css_file = os.path.join(css_dir, AVAILABLE_STYLES[style_name])
 
     try:
-        with open(css_file, 'r', encoding='utf-8') as f:
+        with open(css_file, encoding='utf-8') as f:
             css_content = f.read().strip()
             __css_cache[style_name] = css_content
             return css_content
-    except (IOError, OSError) as e:
+    except OSError as e:
         print(f"Warning: Could not load CSS file {css_file}: {e}")
         return ''
 
 
 def set_style(style_name):
     """Set the current CSS style.
-    
+
     Args:
         style_name: Name of the style to set as current
     """
@@ -80,21 +81,21 @@ def set_style(style_name):
 
 def get_current_style():
     """Get the current CSS style.
-    
+
     Returns:
         Current CSS style string, with RTL direction if enabled
     """
     css = _load_css_file(__current_style)
-    
+
     if __rtl and css:
         css += ' body { direction: rtl; }'
-    
+
     return css
 
 
 def get_available_styles():
     """Get list of available style names.
-    
+
     Returns:
         List of available style names
     """
@@ -103,18 +104,18 @@ def get_available_styles():
 
 def rtl(enabled=None):
     """Get or set RTL (right-to-left) text direction.
-    
+
     Args:
         enabled: Boolean to enable/disable RTL, or None to get current state
-        
+
     Returns:
         Current RTL state if enabled is None
     """
     global __rtl
-    
+
     if enabled is None:
         return __rtl
-    
+
     __rtl = bool(enabled)
 
 
@@ -127,7 +128,7 @@ def clear_cache():
 # Legacy function names for backward compatibility
 def set(style_input):
     """Legacy function: Set the current CSS style.
-    
+
     Args:
         style_input: Either a style name (str) or CSS content (str).
                     If CSS content is provided, it will be mapped back to the style name.
@@ -150,7 +151,7 @@ def set(style_input):
                 if _load_css_file(style_name) == style_input:
                     set_style(style_name)
                     return
-            print(f"Warning: Could not map CSS content to style name")
+            print("Warning: Could not map CSS content to style name")
         except Exception as e:
             print(f"Warning: Error processing CSS content: {e}")
     else:
@@ -178,14 +179,14 @@ def _initialize_style_attributes():
     """Initialize module-level variables for CSS styles."""
     import sys
     current_module = sys.modules[__name__]
-    
+
     for style_name in AVAILABLE_STYLES:
         # Create a property-like object that loads CSS when accessed
         def _make_css_getter(style):
             def _get_css():
                 return _load_css_file(style)
             return _get_css
-        
+
         # Set the CSS content as a module attribute
         setattr(current_module, style_name, _load_css_file(style_name))
 

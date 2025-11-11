@@ -1,5 +1,6 @@
 import markdown
 
+
 class MathJaxPattern(markdown.inlinepatterns.Pattern):
 
     def __init__(self):
@@ -15,7 +16,9 @@ class MathJaxExtension(markdown.Extension):
         # Needs to come before escape matching because \ is pretty important in LaTeX
         md.inlinePatterns.add('mathjax', MathJaxPattern(), '<escape')
 
-def makeExtension(configs=[]):
+def makeExtension(configs=None):
+    if configs is None:
+        configs = []
     return MathJaxExtension(configs)
 
 
