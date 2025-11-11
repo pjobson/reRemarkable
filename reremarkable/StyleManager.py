@@ -27,10 +27,9 @@ class StyleManager:
     def __init__(self, settings_manager, media_path):
         self.settings_manager = settings_manager
         self.media_path = media_path
-        self.custom_css = ""
         self.current_style = "github"  # Default style
         self.style_change_callbacks = []
-        
+
         # Load current style from settings
         self.load_current_style()
     
@@ -48,15 +47,12 @@ class StyleManager:
     
     def load_current_style(self):
         """Load the current style from settings"""
-        self.custom_css = self.settings_manager.get_custom_css()
         self.current_style = self.settings_manager.get_style()
         self.apply_current_style()
     
     def apply_current_style(self):
         """Apply the currently selected style"""
-        if self.current_style == "custom":
-            styles.set(self.custom_css)
-        elif self.current_style in self.STYLE_MAPPINGS:
+        if self.current_style in self.STYLE_MAPPINGS:
             styles.set(self.STYLE_MAPPINGS[self.current_style]())
         else:
             logger.warning(f"Unknown style: {self.current_style}")
@@ -81,27 +77,9 @@ class StyleManager:
         self._notify_style_change()
         return True
     
-    def set_custom_style(self, css_content):
-        """
-        Set custom CSS style
-        
-        Args:
-            css_content: Custom CSS content
-        """
-        self.custom_css = css_content.replace("'", '"')
-        self.current_style = "custom"
-        styles.set(self.custom_css)
-        self.settings_manager.set_setting('css', self.custom_css)
-        self.settings_manager.set_setting('style', 'custom')
-        self._notify_style_change()
-    
     def get_current_style(self):
         """Get the current style name"""
         return self.current_style
-    
-    def get_custom_css(self):
-        """Get the current custom CSS"""
-        return self.custom_css
     
     def get_html_head_style(self):
         """Get the HTML head style section for preview"""
@@ -117,55 +95,6 @@ class StyleManager:
     def get_available_styles(self):
         """Get list of available predefined styles"""
         return list(self.STYLE_MAPPINGS.keys())
-    
-    def show_custom_css_dialog(self, parent_window):
-        """
-        Show the custom CSS dialog
-        
-        Args:
-            parent_window: Parent window for the dialog
-        """
-        custom_window = Gtk.Window()
-        custom_window.set_default_size(640, 480)
-        custom_window.set_position(Gtk.WindowPosition.CENTER)
-        custom_window.set_title("Custom CSS")
-        custom_window.set_transient_for(parent_window)
-        custom_window.set_modal(True)
-
-        custom_vbox = Gtk.VBox()
-        custom_scroller = Gtk.ScrolledWindow()
-        custom_button = Gtk.Button("Apply")
-        custom_vbox.pack_end(custom_button, False, False, 0)
-        
-        custom_text_view = Gtk.TextView()
-        custom_text_view.set_wrap_mode(Gtk.WrapMode.WORD)
-        custom_text_view.set_left_margin(5)
-        custom_text_view.set_right_margin(5)
-        
-        custom_text_buffer = Gtk.TextBuffer()
-        custom_text_buffer.set_text(self.custom_css)
-        custom_text_view.set_buffer(custom_text_buffer)
-        
-        custom_scroller.add(custom_text_view)
-        custom_scroller.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        custom_vbox.pack_start(custom_scroller, True, True, 0)
-        custom_window.add(custom_vbox)
-        
-        def on_apply_clicked(widget):
-            start, end = custom_text_buffer.get_bounds()
-            css_content = custom_text_buffer.get_text(start, end, False)
-            self.set_custom_style(css_content)
-            custom_window.hide()
-        
-        def on_window_delete(widget, event):
-            custom_window.hide()
-            return True
-        
-        custom_button.connect("clicked", on_apply_clicked)
-        custom_window.connect("delete-event", on_window_delete)
-        
-        custom_window.show_all()
-        return custom_window
     
     # Convenience methods for specific styles
     def apply_dark_style(self):
@@ -211,7 +140,3 @@ class StyleManager:
     def apply_solarized_light_style(self):
         """Apply solarized light style"""
         return self.set_style('solarized_light')
-    
-    def apply_custom_style_dialog(self, parent_window):
-        """Show custom CSS dialog and apply the style"""
-        return self.show_custom_css_dialog(parent_window)

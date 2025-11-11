@@ -16,7 +16,6 @@ class SettingsManager:
     def _initialize_defaults(self):
         """Initialize default settings"""
         self.default_settings = {
-            'css': '',
             'font': "Sans 10",
             'line-numbers': True,
             'live-preview': True,
@@ -120,6 +119,3 @@ class SettingsManager:
     
     def get_zoom_level(self):
         return self.get_setting('zoom-level', 1)
-    
-    def get_custom_css(self):
-        return self.get_setting('css', '')
