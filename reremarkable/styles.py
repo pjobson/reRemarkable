@@ -5,17 +5,17 @@ from reremarkable_lib import reremarkableconfig
 
 # Available style names mapped to their CSS filenames
 AVAILABLE_STYLES = {
-    # 'dark': 'dark.css',
-    # 'foghorn': 'foghorn.css',
+    'dark': 'dark.css',
+    'foghorn': 'foghorn.css',
     'github': 'github-markdown.css',
-    # 'handwriting': 'handwriting.css',
-    # 'markdown': 'markdown.css',
-    # 'metro_vibes': 'metro_vibes.css',
-    # 'metro_vibes_dark': 'metro_vibes_dark.css',
-    # 'modern': 'modern.css',
-    # 'screen': 'screen.css',
-    # 'solarized_dark': 'solarized_dark.css',
-    # 'solarized_light': 'solarized_light.css',
+    'handwriting': 'handwriting.css',
+    'markdown': 'markdown.css',
+    'metro_vibes': 'metro_vibes.css',
+    'metro_vibes_dark': 'metro_vibes_dark.css',
+    'modern': 'modern.css',
+    'screen': 'screen.css',
+    'solarized_dark': 'solarized_dark.css',
+    'solarized_light': 'solarized_light.css',
 }
 
 # Github is the default style applied to the markdown
